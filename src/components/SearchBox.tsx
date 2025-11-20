@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 
 
-interface HeaderSearchProps {
+interface SearchBoxProps {
   onSearch: (searchTerm: string) => void;
-  // 允许父组件传入样式来控制宽度
   className?: string; 
+  placeholder?: string; 
 }
 
-const HeaderSearch: React.FC<HeaderSearchProps> = ({ onSearch, className = '' }) => {
+const SearchBox: React.FC<SearchBoxProps> = ({ 
+    onSearch, 
+    className = '', 
+    placeholder = '请输入关键词进行搜索...' 
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSearch = () => {
@@ -24,14 +28,13 @@ const HeaderSearch: React.FC<HeaderSearchProps> = ({ onSearch, className = '' })
 
       <div className={`flex items-center space-x-5 ${className}`}>
 
-
           <div className="flex-1 flex">
             <div className="w-full">
               <div className="w-full h-12 bg-white border border-gray-300 rounded-lg flex items-center p-2">
                 <input
                   type="text"
                   className="flex-1 h-full p-2 outline-none"
-                  placeholder="请输入展会名称进行搜索..."
+                  placeholder={placeholder} 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -45,12 +48,10 @@ const HeaderSearch: React.FC<HeaderSearchProps> = ({ onSearch, className = '' })
               </div>
             </div>
           </div>
-
-
       </div>
 
   );
 };
 
 
-export default HeaderSearch;
+export default SearchBox;

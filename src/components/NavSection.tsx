@@ -1,27 +1,43 @@
-import { Link } from 'react-router-dom'; // 假设使用 React Router
+import { Link } from 'react-router-dom'; 
+import logo2 from '../assets/logo2.svg'
+
+const TEXT_COLOR_CLASS = "text-gray-700 font-normal hover:text-blue-600 transition duration-150";
 
 const NavSection = () => (
-  <nav className="bg-gray-800 text-white p-4">
+  <nav className="bg-white border-b border-gray-200 p-2 sticky top-0 z-50 shadow-sm">
     <div className="w-[1200px] mx-auto flex items-center space-x-8">
       
-      {/* 1. Logo 区域 */}
-      <Link to="/" className="shrink-0">
-          <span className="cursor-pointer">
-            <span className="text-xl font-bold text-blue-400">我的Logo</span>
-          </span>
+      <Link to="/" className="shrink-0 flex items-center">
+          <img 
+              src={logo2} 
+              alt="ExpoAgain Logo" 
+              className="h-10 w-auto" 
+          />
       </Link>
       
-      {/* 2. 导航项 */}
       <div className="flex items-center space-x-6">
+          
           <Link 
               to="/" 
-              className="text-white font-medium hover:text-blue-300 transition duration-150"
+              className={TEXT_COLOR_CLASS}
           >
-              全球展会
+              首页
           </Link>
           
-          {/* 可以在这里添加其他导航项 */}
-      </div>
+          <Link 
+              to="/exhibitions" 
+              className={TEXT_COLOR_CLASS}
+          >
+              国际展会
+          </Link>
+
+          <Link 
+              to="/exhibitors" 
+              className={TEXT_COLOR_CLASS}
+          >
+              出海企业
+          </Link>
+        </div>
 
     </div>
   </nav>
