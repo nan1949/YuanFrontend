@@ -7,17 +7,19 @@ import NavSection from './components/NavSection';
 import ExhibitionDetailPage from './pages/ExhibitionDetailPage';
 import ExhibitionsPage from './pages/ExhibitionsPage';
 import ExhibitorSearchPage from './pages/ExhibitorSearchPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import logoUrl from './assets/logo1.svg';
+import { AuthProvider } from './contexts/AuthContext';
 
-console.log("Logo URL:", logoUrl);
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
         <>
             <NavSection />
-                <main className="flex-1 bg-gray-50 min-h-[calc(100vh-120px)]">
-                    {children}
-                </main>
+            <main className="flex-1 pb-10 bg-gray-50 min-h-[calc(100vh-120px)]">
+                {children}
+            </main>
             <FooterSection />
         </>
     );
@@ -46,47 +48,68 @@ const App: React.FC = () => {
   return (
     <>
         <Router>
-            <Routes>
-                <Route 
-                    path="/" 
-                    element={
-                        <Layout>
-                            <HomePage />
-                        </Layout>
-                    } 
-                />
-                <Route 
-                    path="/exhibitions" 
-                    element={
-                        <Layout>
-                            <ExhibitionsPage />
-                        </Layout>
-                    } 
-                />
-                <Route 
-                    path="/exhibitions/:id" 
-                    element={
-                        <Layout>
-                            <ExhibitionDetailPage />
-                        </Layout>
-                    } 
-                />
-                <Route 
-                    path="/exhibitors" 
-                    element={
-                        <Layout>
-                            <ExhibitorSearchPage />
-                        </Layout>
-                    } 
-                />
+            <AuthProvider>
+                <Routes>
+                    <Route 
+                        path="/" 
+                        element={
+                            <Layout>
+                                <HomePage />
+                            </Layout>
+                        } 
+                    />
+                    <Route 
+                        path="/exhibitions" 
+                        element={
+                            <Layout>
+                                <ExhibitionsPage />
+                            </Layout>
+                        } 
+                    />
+                    <Route 
+                        path="/exhibitions/:id" 
+                        element={
+                            <Layout>
+                                <ExhibitionDetailPage />
+                            </Layout>
+                        } 
+                    />
+                    <Route 
+                        path="/exhibitors" 
+                        element={
+                            <Layout>
+                                <ExhibitorSearchPage />
+                            </Layout>
+                        } 
+                    />
 
-                <Route path="*" element={
-                    <Layout>
-                        <div className="p-20 text-center text-xl">404 - 页面未找到</div>
-                    </Layout>
-                } />
-                
-            </Routes>
+                    <Route 
+                        path="/login" 
+                        element={
+                            <Layout>
+                                <LoginPage />
+                            </Layout>
+                        } 
+                    />
+
+                    <Route 
+                        path="/register" 
+                        element={
+                            <Layout>
+                                <RegisterPage />
+                            </Layout>
+                        } 
+                    />
+
+                    <Route path="*" element={
+                        <Layout>
+                            <div className="p-20 text-center text-xl">404 - 页面未找到</div>
+                        </Layout>
+                    } />
+                    
+                </Routes>
+            </AuthProvider>
+        
         </Router>
     </>
 

@@ -4,6 +4,7 @@ import { ExhibitorData } from '../types';
 import { getExhibitors } from '../services/exhibitorService'; 
 import SearchBox from '../components/SearchBox';
 import useTitle from '../hooks/useTitle';
+import Container from '../components/Container';
 
 const INITIAL_PAGE_SIZE = 10; 
 
@@ -11,7 +12,7 @@ interface ExhibitorSearchPageProps {}
 
 const ExhibitorSearchPage: React.FC<ExhibitorSearchPageProps> = () => {
 
-  useTitle('出海企业_出海展商搜索-展外展')
+  useTitle('参展企业_出海展商搜索-展外展')
 
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
 
@@ -64,8 +65,7 @@ const ExhibitorSearchPage: React.FC<ExhibitorSearchPageProps> = () => {
 
   return (
 
-      <div className="p-4 w-[1200px] mx-auto">
-          
+      <Container>
           <SearchBox 
               onSearch={handleSearchTermChange} 
               className="max-w-lg mb-4"
@@ -82,8 +82,8 @@ const ExhibitorSearchPage: React.FC<ExhibitorSearchPageProps> = () => {
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
           />
-      </div>
- 
+      </Container>    
+
   );
 };
 

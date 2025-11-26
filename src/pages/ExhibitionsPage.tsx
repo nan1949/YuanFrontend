@@ -4,6 +4,7 @@ import { ExhibitionData } from '../types';
 import { getExhibitions } from '../services/exhibitionService';
 import SearchBox from '../components/SearchBox';
 import useTitle from '../hooks/useTitle';
+import Container from '../components/Container';
 
 const INITIAL_PAGE_SIZE = 10; 
 
@@ -59,25 +60,23 @@ const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
 
   return (
 
-        <div className="p-4 w-[1200px] mx-auto">
-            <SearchBox
-              onSearch={handleSearchTermChange} 
-              className="max-w-lg mb-4"
-              placeholder='搜索展会...'
-            />
-            <ExhibitionList 
-              data={exhibitions} 
-              loading={loading} 
-              totalCount={totalCount}
-              currentPage={currentPage}
-              pageSize={pageSize}
-              onPageChange={handlePageChange}
-              onPageSizeChange={handlePageSizeChange}
-            />
-        </div>
-        
- 
-   
+      <Container>
+          <SearchBox
+            onSearch={handleSearchTermChange} 
+            className="max-w-lg mb-4"
+            placeholder='搜索展会...'
+          />
+          <ExhibitionList 
+            data={exhibitions} 
+            loading={loading} 
+            totalCount={totalCount}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+      </Container>
+            
   );
 };
 

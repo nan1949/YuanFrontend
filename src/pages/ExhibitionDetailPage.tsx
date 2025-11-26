@@ -5,7 +5,7 @@ import { getExhibitionDetail } from '../services/exhibitionService';
 import { getExhibitors } from '../services/exhibitorService';
 import useTitle from '../hooks/useTitle';
 import TabButton from '../components/TabButton';
-import ExhibitorList from '../components/ExhibitorList';
+import Container from '../components/Container';
 
 
 const formatDate = (dateString?: string | null): string => {
@@ -112,7 +112,8 @@ const ExhibitionDetailPage: React.FC = () => {
     const industryFields = Array.isArray(exhibition.industry_field) ? exhibition.industry_field : [];
 
     return (
-        <div className="w-[1200px] mx-auto py-4">
+        <Container>
+
             <h1 className="text-2xl font-medium text-gray-800 mb-2">{exhibition.fair_name_trans}</h1>
             <p className="text-xl text-gray-500 italic">{exhibition.fair_name}</p>
 
@@ -200,18 +201,10 @@ const ExhibitionDetailPage: React.FC = () => {
                         )
                     )}
 
-                    {activeTab === 'exhibitors' && (
-                        <ExhibitorList loading={exhibitorLoading} data={exhibitors} 
-                            totalCount={30}
-                            currentPage={1}
-                            pageSize={10}
-                            onPageChange={handlePageChange}
-                        />
-                    )}
                 </div>
             </div>
             
-        </div>
+        </Container>
     );
 };
 
