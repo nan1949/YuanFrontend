@@ -23,6 +23,7 @@ export interface ExhibitionData {
   organizer_name: string;
   period:string;
   logo_url?: string;
+  banner_url?: string;
 }
 
 export interface ExpoInfo {
@@ -36,7 +37,7 @@ export interface ExpoInfo {
 }
 
 
-export interface ExhibitorData {
+export interface CompanyData {
   id: string;
   fair_id: string;
   exhibitor_name: string;
@@ -57,4 +58,27 @@ export interface ExhibitorData {
   phone:string[];
   
   expo_info: ExpoInfo[]
+}
+
+export interface ExhibitorData {
+    // 保持原有的核心字段
+    id: number;
+    fair_id: number | null;
+    exhibitor_name: string | null;
+    company_id: string | null;
+    country: string | null;
+    city: string | null;
+    logo_url: string | null;
+    intro: string | null;
+    fair_start_date: string | null;
+    fair_end_date: string | null;
+    
+    // 🚀 新增的字段，与后端接口保持一致
+    company_name: string | null;
+    website: string | null;
+    phone: string | null;
+    email: string | null;
+    brands: string | null;
+    products: string | null;
+    booth_number: string | null;
 }

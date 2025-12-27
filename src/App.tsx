@@ -6,7 +6,7 @@ import FooterSection from './components/FooterSection';
 import NavSection from './components/NavSection';
 import ExhibitionDetailPage from './pages/ExhibitionDetailPage';
 import ExhibitionsPage from './pages/ExhibitionsPage';
-import ExhibitorSearchPage from './pages/ExhibitorSearchPage';
+import ExhibitorSearchPage from './pages/Companiespage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import logoUrl from './assets/logo1.svg';

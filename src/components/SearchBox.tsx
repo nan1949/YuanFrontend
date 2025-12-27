@@ -26,11 +26,10 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 
   return (
 
-      <div className={`flex items-center space-x-5 ${className}`}>
+      <div className={`flex items-center w-full ${className}`}>
 
-          <div className="flex-1 flex">
-            <div className="w-full">
-              <div className="w-full h-12 bg-white border border-gray-300 rounded-lg flex items-center p-2">
+  
+              <div className="w-full h-12 bg-white border border-gray-300 rounded flex items-center p-2">
                 <input
                   type="text"
                   className="flex-1 h-full p-2 outline-none"
@@ -40,14 +39,13 @@ const SearchBox: React.FC<SearchBoxProps> = ({
                   onKeyDown={handleKeyDown}
                 />
                 <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg ml-2 hover:bg-blue-600 transition duration-150"
+                  className="bg-blue-500 text-white px-4 py-2 rounded ml-2 hover:bg-blue-600 transition duration-150 flex-shrink-0"
                   onClick={handleSearch}
                 >
                   搜索
                 </button>
               </div>
-            </div>
-          </div>
+     
       </div>
 
   );

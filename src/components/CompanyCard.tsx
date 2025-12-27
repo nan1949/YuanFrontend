@@ -1,13 +1,13 @@
 import React, {useMemo} from 'react';
 import { Link } from 'react-router-dom';
-import { ExhibitorData } from '../types'; 
+import { CompanyData } from '../types'; 
 import { card2ndTitleClasses, cardClasses, cardRowClasses, cardTitleClasses } from '../styles/tailwindStyles';
 import TagGroup from './TagGroup';
 import InfoItem from './InfoItem';
 import InfoItemMultiValue from './InfoItemMultiValue';
 
 
-const ExhibitorCard: React.FC<{ data: ExhibitorData }> = ({ data }) => {
+const CompanyCard: React.FC<{ data: CompanyData }> = ({ data }) => {
 
     const locationString = [data.country, data.province, data.city].filter(Boolean).join(', ') || '—';
   
@@ -103,4 +103,4 @@ const ExhibitorCard: React.FC<{ data: ExhibitorData }> = ({ data }) => {
   );
 };
 
-export default ExhibitorCard
+export default CompanyCard
