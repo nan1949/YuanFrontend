@@ -7,23 +7,37 @@ export interface FilterState {
 
 
 export interface ExhibitionData {
-  id: string;
+  id: number;
   fair_name: string;
   fair_name_trans: string;
+  fair_series_id: number;
   website: string;
   fair_start_date: string;
   fair_end_date: string;
+  open_hour: string;
   intro: string;
+  fair_label:string;
+  event_format:string;
   industry_field: string[];
   exhibition_items: string;
   country: string;
   province: string; 
-  city: string; 
+  city: string;
+  pavilion_id: number;
   pavilion: string; 
+  organizer_id: number;
   organizer_name: string;
   period:string;
+  contact: string,
+  phone: string,
+  fax: string,
+  email: string,
   logo_url?: string;
   banner_url?: string;
+
+  // 新增字段
+  exhibitor_edition?: string; // 最新展商日期/届份
+  exhibitor_count?: number;   // 展商人数
 }
 
 export interface ExpoInfo {
@@ -39,7 +53,7 @@ export interface ExpoInfo {
 
 export interface CompanyData {
   id: string;
-  fair_id: string;
+  fair_id: number;
   exhibitor_name: string;
   uni_code: string;
   legal_person: string;

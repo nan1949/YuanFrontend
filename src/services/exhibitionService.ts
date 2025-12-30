@@ -49,3 +49,33 @@ export const getExhibitionDetail = async (id: string): Promise<ExhibitionData> =
         throw new Error('无法获取展会详情数据。');
     }
 };
+
+
+export const updateExhibition = async (id: number, data: Partial<ExhibitionData>): Promise<ExhibitionData> => {
+    const response = await axios.put(`${API_BASE_URL}/exhibitions/${id}`, data);
+    return response.data;
+};
+
+
+export const deleteExhibition = async (id: number): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/exhibitions/${id}`);
+};
+
+
+export const mergeExhibitions = async (keepId: number, duplicateIds: number[]): Promise<any> => {
+    const response = await axios.post(`${API_BASE_URL}/exhibitions/merge`, {
+        keep_id: keepId,
+        duplicate_ids_to_delete: duplicateIds
+    });
+    return response.data;
+};
+
+
+export const categorizeExhibitionSeries = async (payload: {
+    fair_ids: number[],
+    custom_series_name?: string,
+    existing_series_id?: number
+}): Promise<any> => {
+    const response = await axios.post(`${API_BASE_URL}/exhibitions/categorize-series`, payload);
+    return response.data;
+};

@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
+import { Outlet } from 'react-router-dom';
+import AdminExhibitions from './pages/admin/AdminExhibitions';
+import AdminLayout from './components/AdminLayout';
+
 import HomePage from './pages/HomePage';
 import FooterSection from './components/FooterSection';
 import NavSection from './components/NavSection';
@@ -50,56 +54,20 @@ const App: React.FC = () => {
         <Router>
             <AuthProvider>
                 <Routes>
-                    <Route 
-                        path="/" 
-                        element={
-                            <Layout>
-                                <HomePage />
-                            </Layout>
-                        } 
-                    />
-                    <Route 
-                        path="/exhibitions" 
-                        element={
-                            <Layout>
-                                <ExhibitionsPage />
-                            </Layout>
-                        } 
-                    />
-                    <Route 
-                        path="/exhibitions/:id" 
-                        element={
-                            <Layout>
-                                <ExhibitionDetailPage />
-                            </Layout>
-                        } 
-                    />
-                    <Route 
-                        path="/exhibitors" 
-                        element={
-                            <Layout>
-                                <ExhibitorSearchPage />
-                            </Layout>
-                        } 
-                    />
+                    <Route element={<Layout children={<Outlet />} />}>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/exhibitions" element={<ExhibitionsPage />} />
+                        <Route path="/exhibitions/:id" element={<ExhibitionDetailPage />} />
+                        <Route path="/exhibitors" element={<ExhibitorSearchPage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                    </Route>
 
-                    <Route 
-                        path="/login" 
-                        element={
-                            <Layout>
-                                <LoginPage />
-                            </Layout>
-                        } 
-                    />
-
-                    <Route 
-                        path="/register" 
-                        element={
-                            <Layout>
-                                <RegisterPage />
-                            </Layout>
-                        } 
-                    />
+                    <Route path="/admin" element={<AdminLayout />}>
+                        <Route index element={<div className="text-2xl">欢迎进入后台管理系统</div>} />
+                        <Route path="exhibitions" element={<AdminExhibitions />} />
+                        {/* 可以在这里继续添加 Pavilion 管理等 */}
+                    </Route>
 
                     <Route path="*" element={
                         <Layout>
@@ -108,6 +76,8 @@ const App: React.FC = () => {
                     } />
                     
                 </Routes>
+
+        
             </AuthProvider>
         
         </Router>
