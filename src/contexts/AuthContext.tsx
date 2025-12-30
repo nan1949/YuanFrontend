@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import axios, { AxiosInstance } from 'axios';
+import api from '../services/api';
 
 // 1. 定义用户数据类型
 interface User {
     id: number;
     email: string;
-    fullName: string;
+    full_name: string;
     avatarUrl: string; // 默认头像URL
-    // 可以在这里添加其他后端返回的属性，如 id, token 等
+    is_admin: boolean; // 🚀 新增
 }
 
 interface LoginPayload {
@@ -21,22 +21,15 @@ interface AuthContextType {
     token: string | null;
     login: (payload: LoginPayload) => Promise<void>;
     logout: () => void;
-    api: AxiosInstance;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
 const MOCK_AVATAR_URL = 'https://via.placeholder.com/32/3b82f6/ffffff?text=U';
 
 // 3. 创建 Context，并指定类型
 // 使用 'null' 加上类型断言来初始化，确保在使用时不会是 null
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
 
 // 4. 创建 Provider 组件
 interface AuthProviderProps {
@@ -51,46 +44,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
     
-    if (token) {
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-        delete axiosInstance.defaults.headers.common['Authorization'];
-    }
-
-    // 提取公共的获取用户信息函数
-    const fetchUserByToken = async (accessToken: string) => {
-        // 使用一个临时的实例或配置，避免循环依赖，或者直接使用 axios.get
-        const response = await axios.get(`${API_BASE_URL}/users/me`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-            },
-        });
-        // 假设后端 /users/me 返回 { id, email, fullName }
-        return response.data;
-    };
-
     const login = async ({ email, password }: LoginPayload) => {
         // 实际应用中会调用 API
         // OAuth2PasswordRequestForm 期望 application/x-www-form-urlencoded
-        const formData = new URLSearchParams();
+        const formData = new FormData();
         formData.append('username', email); // 对应 OAuth2 form 的 username
         formData.append('password', password);
 
-        const tokenResponse = await axios.post('/token', formData.toString(), {
+        const tokenResponse = await api.post('/token', formData, {
             // 明确覆盖 Content-Type 为 form-urlencoded
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            baseURL: API_BASE_URL, // 确保使用完整的 /api/v1/token 路径
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
 
         const accessToken: string = tokenResponse.data.access_token;
         
         // --- 步骤 2: 使用令牌获取用户信息 ---
-        const userData = await fetchUserByToken(accessToken);
+        const userRes = await api.get('/users/me', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
         
         const fullUser: User = {
-            ...userData,
+            ...userRes.data,
             avatarUrl: MOCK_AVATAR_URL,
         };
 
@@ -100,8 +74,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('token', accessToken);
         localStorage.setItem('user', JSON.stringify(fullUser));
         
-        // 关键：立即更新 axios 实例的头部，以便后续请求使用新的 Token
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
     };
 
     // 模拟登出函数
@@ -112,15 +84,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         // 清除 Token 头部
-        delete axiosInstance.defaults.headers.common['Authorization'];
+        window.location.href = '/';
     };
 
     const contextValue: AuthContextType = { 
         user, 
         token, 
         login, 
-        logout,
-        api: axiosInstance // 暴露配置好的实例
+        logout
     };
 
     return (

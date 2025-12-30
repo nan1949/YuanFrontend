@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, message, Space, Form, Input, Popconfirm, Tag, Radio, Row, Col, InputNumber, DatePicker, Select } from 'antd';
+import { Table, Button, Modal, message, Space, Form, Input, Popconfirm, Radio, Row, Col, InputNumber, DatePicker, Select } from 'antd';
 import dayjs from 'dayjs';
 import { 
     getExhibitions, 
@@ -38,6 +38,9 @@ const AdminExhibitions: React.FC = () => {
     const [cities, setCities] = useState<string[]>([]);
 
     const [allIndustryFields, setAllIndustryFields] = useState<string[]>([]);
+
+    const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
+    const [seriesForm] = Form.useForm();
 
     // 1. 获取数据 (调用之前的 /exhibitions 接口)
     const fetchData = async (search: string = searchText, page: number = pagination.current) => {
@@ -179,23 +182,40 @@ const AdminExhibitions: React.FC = () => {
         }
     };
 
-    // 3. 归类为系列操作 (对应之前写的 categorize-series 接口)
-    const handleCategorize = async () => {
-        const seriesName = prompt("请输入展会系列名称");
-        if (!seriesName) return;
+    const handleOpenSeriesModal = () => {
+        if (selectedIds.length === 0) {
+            return message.warning('请先选择要归类的展会');
+        }
 
-        const res = await fetch('/api/exhibitions/categorize-series', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                fair_ids: selectedIds,
-                custom_series_name: seriesName 
-            })
-        });
+        // 默认取选中项中第一条的名称作为系列名
+        const firstSelected = data.find(item => item.id === selectedIds[0]);
+        const defaultName = firstSelected ? firstSelected.fair_name : '';
 
-        if (res.ok) {
-            message.success('归类成功');
-            fetchData();
+        seriesForm.setFieldsValue({ custom_series_name: defaultName });
+        setIsSeriesModalOpen(true);
+    };
+
+    // 弹窗点击确认时的提交逻辑
+    const handleSeriesSubmit = async () => {
+        try {
+            const values = await seriesForm.validateFields();
+            setLoading(true);
+            
+            const result = await categorizeExhibitionSeries(selectedIds, values.custom_series_name);
+
+            if (result.status === "success") {
+                message.success(result.message || '归类成功');
+                setIsSeriesModalOpen(false);
+                setSelectedIds([]);
+                fetchData();
+            } else {
+                message.error(result.message || '归类失败');
+            }
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.detail || '请求失败';
+            message.error(errorMsg);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -279,7 +299,7 @@ const AdminExhibitions: React.FC = () => {
                     <Button 
                         type="primary" 
                         disabled={selectedIds.length === 0}
-                        onClick={() => {/* 逻辑同 handleMerge */}}
+                        onClick={handleOpenSeriesModal} // 修改此处
                     >归为系列</Button>
                     <Button onClick={() => fetchData()}>刷新</Button>
                 </Space>
@@ -528,6 +548,28 @@ const AdminExhibitions: React.FC = () => {
                             <Form.Item name="banner_url" label="Banner 图片链接"><Input /></Form.Item>
                         </Col>
                     </Row>
+                </Form>
+            </Modal>
+
+            <Modal
+                title="归为展会系列"
+                open={isSeriesModalOpen}
+                onOk={handleSeriesSubmit}
+                onCancel={() => setIsSeriesModalOpen(false)}
+                confirmLoading={loading}
+                destroyOnHidden
+            >
+                <div className="mb-4 text-gray-500">
+                    将选中的 {selectedIds.length} 项展会归类为同一个系列。如果该系列已存在，系统将自动关联；如果不存在，将创建新系列。
+                </div>
+                <Form form={seriesForm} layout="vertical">
+                    <Form.Item 
+                        name="custom_series_name" 
+                        label="系列名称" 
+                        rules={[{ required: true, message: '请输入系列名称' }]}
+                    >
+                        <Input placeholder="例如：中国国际工业博览会" />
+                    </Form.Item>
                 </Form>
             </Modal>
         </div>

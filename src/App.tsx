@@ -3,31 +3,21 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import { Outlet } from 'react-router-dom';
 import AdminExhibitions from './pages/admin/AdminExhibitions';
-import AdminLayout from './components/AdminLayout';
+
+import AdminLayout from './layouts/AdminLayout';
+import MainLayout from './layouts/MainLayout';
 
 import HomePage from './pages/HomePage';
-import FooterSection from './components/FooterSection';
-import NavSection from './components/NavSection';
 import ExhibitionDetailPage from './pages/ExhibitionDetailPage';
 import ExhibitionsPage from './pages/ExhibitionsPage';
 import ExhibitorSearchPage from './pages/Companiespage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ProfilePage from './pages/client/ProfilePage';
 import logoUrl from './assets/logo1.svg';
 import { AuthProvider } from './contexts/AuthContext';
+import AdminRoute from './components/AdminRoute';
 
-
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    return (
-        <>
-            <NavSection />
-            <main className="flex-1 pb-10 bg-gray-50 min-h-[calc(100vh-120px)]">
-                {children}
-            </main>
-            <FooterSection />
-        </>
-    );
-};
 
 
 const App: React.FC = () => {
@@ -54,25 +44,34 @@ const App: React.FC = () => {
         <Router>
             <AuthProvider>
                 <Routes>
-                    <Route element={<Layout children={<Outlet />} />}>
+                    <Route element={<MainLayout children={<Outlet />} />}>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/exhibitions" element={<ExhibitionsPage />} />
                         <Route path="/exhibitions/:id" element={<ExhibitionDetailPage />} />
                         <Route path="/exhibitors" element={<ExhibitorSearchPage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
                     </Route>
 
-                    <Route path="/admin" element={<AdminLayout />}>
-                        <Route index element={<div className="text-2xl">欢迎进入后台管理系统</div>} />
-                        <Route path="exhibitions" element={<AdminExhibitions />} />
-                        {/* 可以在这里继续添加 Pavilion 管理等 */}
+                    <Route element={<AdminRoute />}>
+                        <Route path="/admin" element={<AdminLayout />}>
+                            <Route index element={<div className="text-2xl">欢迎进入后台管理系统</div>} />
+                            <Route path="exhibitions" element={<AdminExhibitions />} />
+                            {/* 可以在这里继续添加 Pavilion 管理等 */}
+                            <Route path="*" element={
+                                <div className="p-10 text-center">
+                                    <h2 className="text-2xl font-bold">404 - 后台页面不存在</h2>
+                                    <p className="text-gray-500 mt-2">请检查侧边栏菜单或联系管理员。</p>
+                                </div>
+                            } />
+                        </Route>
                     </Route>
 
                     <Route path="*" element={
-                        <Layout>
+                        <MainLayout>
                             <div className="p-20 text-center text-xl">404 - 页面未找到</div>
-                        </Layout>
+                        </MainLayout>
                     } />
                     
                 </Routes>

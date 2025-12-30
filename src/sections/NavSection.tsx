@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'; 
 import logo2 from '../assets/logo2.svg'
-import UserNav from './UserNav';
+import UserNav from '../components/UserNav';
 
 const TEXT_COLOR_CLASS = "text-gray-700 font-normal hover:text-blue-600 transition duration-150";
 
