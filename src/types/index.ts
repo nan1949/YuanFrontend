@@ -5,6 +5,11 @@ export interface FilterState {
   venueIds: string[]; // 选中的场馆 ID 列表
 }
 
+export interface EventFormat {
+    zh: string;
+    en: string;
+}
+
 
 export interface ExhibitionData {
   id: number;

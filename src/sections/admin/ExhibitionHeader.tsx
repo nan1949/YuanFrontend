@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input, Button, Space, AutoComplete, Divider } from 'antd';
 import { PlusOutlined, MergeCellsOutlined, ApartmentOutlined } from '@ant-design/icons';
 
@@ -16,31 +16,53 @@ interface ExhibitionHeaderProps {
 const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
   const { history, onSearch, searchText, setSearchText, selectedCount } = props;
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const options = history.map(item => ({
     value: item,
     label: (
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         {item}
-        <span className="text-gray-300 text-xs">历史搜索</span>
+        <span className="text-gray-300 text-[10px]">历史搜索</span>
       </div>
     )
   }));
 
+  const handleSearchInternal = (value: string) => {
+    setDropdownOpen(false); // 点击搜索时立即关闭下拉框
+    onSearch(value);
+    // 搜索后让输入框失去焦点，彻底防止下拉框再次弹出
+    (document.activeElement as HTMLElement)?.blur();
+  };
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-4 flex justify-between items-center">
+    <div className="mb-4 flex justify-between items-center">
       {/* 左侧：固定搜索框 */}
       <div className="flex-shrink-0">
         <AutoComplete
+          open={dropdownOpen}
+          onBlur={() => setDropdownOpen(false)}
+          onFocus={() => {
+             // 只有当有历史记录时，获取焦点才打开
+             if (history.length > 0) setDropdownOpen(true);
+          }}
           classNames={{ popup: { root: 'history-dropdown' } }}
           style={{ width: 320 }}
           options={options}
           value={searchText}
-          onSelect={onSearch}
-          onChange={setSearchText}
+          onSelect={(val) => {
+            setSearchText(val);
+            handleSearchInternal(val); // 选择历史记录后直接触发搜索并关闭
+          }}
+          onChange={(val) => {
+            setSearchText(val);
+            // 如果用户清空了输入，也可以决定是否显示历史
+            setDropdownOpen(val.length >= 0 && history.length > 0);
+          }}
         >
           <Input.Search
             placeholder="搜索展会名称..."
-            onSearch={onSearch}
+            onSearch={handleSearchInternal}
             enterButton
             allowClear
           />

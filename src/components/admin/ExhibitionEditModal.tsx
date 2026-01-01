@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, message } from 'antd';
 import dayjs from 'dayjs';
-import { ExhibitionData } from '../../types';
+import { ExhibitionData, EventFormat } from '../../types';
 import { updateExhibition, createExhibition } from '../../services/exhibitionService';
 
 const { TextArea } = Input;
@@ -15,12 +15,14 @@ interface ExhibitionEditModalProps {
     provinces: string[];
     cities: string[];
     industries: any[];
+    eventFormats: EventFormat[]; // 增加展会形式数据源
     onCountryChange: (country: string) => void;
     onProvinceChange: (province: string) => void;
 }
 
 const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
-    open, editingFair, onCancel, onSuccess, countries, provinces, cities, industries, onCountryChange, onProvinceChange
+    open, editingFair, onCancel, onSuccess, countries, provinces, cities, industries, eventFormats,
+    onCountryChange, onProvinceChange
 }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
@@ -90,28 +92,48 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
             >
                 {/* 第一行：名称相关 */}
                 <Row gutter={24}>
-                    <Col span={12}>
+                    <Col span={10}>
                         <Form.Item name="fair_name" label="展会原名" rules={[{ required: true }]}><Input /></Form.Item>
                     </Col>
-                    <Col span={12}>
+                    <Col span={10}>
                         <Form.Item name="fair_name_trans" label="中文译名"><Input /></Form.Item>
                     </Col>
+                    <Col span={4}>
+                        <Form.Item name="fair_series_id" label="系列ID"><InputNumber className="w-full" /></Form.Item>
+                    </Col>
                 </Row>
+              
+                
+       
 
                 {/* 第二行：分类与系列 */}
                 <Row gutter={24}>
-                    <Col span={6}>
-                        <Form.Item name="fair_series_id" label="系列ID"><InputNumber className="w-full" /></Form.Item>
-                    </Col>
-                    <Col span={6}>
+                
+                    <Col span={12}>
                         <Form.Item name="fair_label" label="展会标签"><Input placeholder="如：专业展" /></Form.Item>
                     </Col>
-                    <Col span={6}>
-                        <Form.Item name="event_format" label="展会形式"><Input placeholder="如：线下" /></Form.Item>
+                    <Col span={12}>
+                        <Form.Item name="event_format" label="展会形式">
+                            <Select 
+                                showSearch 
+                                placeholder="请选择或输入展会形式"
+                                optionFilterProp="filterText" // 🚀 增强搜索：支持搜英文找到中文
+                                allowClear
+                                // 核心：如果数据库里的值不在 options 里，Select 依然会渲染该值
+                                options={eventFormats.map(f => ({
+                                    // 🚀 重点：label 是展示给用户看的（带括号英文）
+                                    label: f.en ? `${f.zh} (${f.en})` : f.zh, 
+                                    
+                                    // 🚀 重点：value 是选中后填入框内并提交的值（仅中文）
+                                    value: f.zh,
+                                    
+                                    // 自定义一个搜索字段，让用户搜英文也能匹配到
+                                    filterText: `${f.zh} ${f.en}` 
+                                }))}
+                            />
+                        </Form.Item>
                     </Col>
-                    <Col span={6}>
-                        <Form.Item name="period" label="举办周期"><Input placeholder="如：一年一届" /></Form.Item>
-                    </Col>
+                 
                 </Row>
 
                 <Form.Item name="website" label="官方网站"><Input /></Form.Item>
@@ -225,12 +247,11 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                                 />
                         </Form.Item>
                     </Col>
+                    <Col span={8}>
+                        <Form.Item name="period" label="举办周期"><Input placeholder="如：一年一届" /></Form.Item>
+                    </Col>
 
                 </Row>
-
-                <Form.Item name="intro" label="展会简介">
-                    <TextArea rows={6} showCount maxLength={2000} />
-                </Form.Item>
 
                 <Row gutter={24}>
                     <Col span={6}>
@@ -238,7 +259,10 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                     </Col>
                 </Row>
 
-        
+                <Form.Item name="intro" label="展会简介">
+                    <TextArea rows={6} showCount maxLength={2000} />
+                </Form.Item>
+
                 <Row gutter={24}>
                     <Col span={9}>
                         <Form.Item name="organizer_name" label="主办方名称"><Input /></Form.Item>
@@ -263,17 +287,15 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                 </Row>
 
                 <Form.Item name="exhibition_items" label="展品范围">
-                    <TextArea rows={3} showCount maxLength={1000} />
+                    <TextArea rows={6} showCount maxLength={2000} />
                 </Form.Item>
 
-                <Row gutter={24}>
-                    <Col span={12}>
-                        <Form.Item name="logo_url" label="Logo 图片链接"><Input /></Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="banner_url" label="Banner 图片链接"><Input /></Form.Item>
-                    </Col>
-                </Row>
+           
+                <Form.Item name="logo_url" label="Logo 图片链接"><Input /></Form.Item>
+        
+    
+                <Form.Item name="banner_url" label="Banner 图片链接"><Input /></Form.Item>
+           
             </Form>
         </Modal>
     );

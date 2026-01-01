@@ -1,5 +1,5 @@
 import api from './api';
-import { ExhibitionData } from '../types';
+import { ExhibitionData, EventFormat } from '../types';
 
 
 export interface PaginatedExhibitionsResponse {
@@ -84,4 +84,9 @@ export const getSearchHistory = async (): Promise<string[]> => {
 
 export const saveSearchHistory = async (keyword: string): Promise<void> => {
     await api.post(`/search-history?keyword=${encodeURIComponent(keyword)}`);
+};
+
+export const getEventFormats = async (): Promise<EventFormat[]> => {
+    const res = await api.get('/event-formats');
+    return res.data;
 };
