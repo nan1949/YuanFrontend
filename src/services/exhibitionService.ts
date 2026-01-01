@@ -42,6 +42,11 @@ export const getExhibitionDetail = async (id: string): Promise<ExhibitionData> =
     }
 };
 
+export const createExhibition = async (data: Partial<ExhibitionData>): Promise<any> => {
+    const response = await api.post(`/exhibitions`, data);
+    return response.data;
+};
+
 
 export const updateExhibition = async (id: number, data: Partial<ExhibitionData>): Promise<ExhibitionData> => {
     const response = await api.put(`/exhibitions/${id}`, data);
@@ -69,4 +74,14 @@ export const categorizeExhibitionSeries = async (fairIds: number[], seriesName: 
         custom_series_name: seriesName
     });
     return response.data;
+};
+
+
+export const getSearchHistory = async (): Promise<string[]> => {
+    const res = await api.get('/search-history');
+    return res.data;
+};
+
+export const saveSearchHistory = async (keyword: string): Promise<void> => {
+    await api.post(`/search-history?keyword=${encodeURIComponent(keyword)}`);
 };

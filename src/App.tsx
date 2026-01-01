@@ -16,7 +16,7 @@ import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/client/ProfilePage';
 import logoUrl from './assets/logo1.svg';
 import { AuthProvider } from './contexts/AuthContext';
-import AdminRoute from './components/AdminRoute';
+import AdminRoute from './components/admin/AdminRoute';
 
 
 

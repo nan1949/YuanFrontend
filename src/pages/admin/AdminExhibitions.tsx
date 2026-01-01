@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, message, Space, Form, Input, Popconfirm, Radio, Row, Col, InputNumber, DatePicker, Select } from 'antd';
+import { Table, Button, Modal, message, Space, Form, Input, Popconfirm, Radio
+} from 'antd';
 import dayjs from 'dayjs';
 import { 
     getExhibitions, 
-    updateExhibition, 
     deleteExhibition, 
     mergeExhibitions, 
-    categorizeExhibitionSeries 
+    categorizeExhibitionSeries,
+    getSearchHistory, 
+    saveSearchHistory
 } from '../../services/exhibitionService';
+import ExhibitionHeader from '../../sections/admin/ExhibitionHeader';
+import ExhibitionEditModal from '../../components/admin/ExhibitionEditModal';
+import ExhibitionMergeModal from '../../components/admin/ExhibitionMergeModal';
 import { ExhibitionData } from '../../types';
 import * as regionService from '../../services/regionService';
 import * as industryService from '../../services/industryService';
-
-const { Search } = Input;
-const { TextArea } = Input;
 
 
 const AdminExhibitions: React.FC = () => {
@@ -23,6 +25,8 @@ const AdminExhibitions: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [searchText, setSearchText] = useState<string>('');
+    const [history, setHistory] = useState<string[]>([]);
+    
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     // 编辑相关的状态
@@ -41,6 +45,7 @@ const AdminExhibitions: React.FC = () => {
 
     const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
     const [seriesForm] = Form.useForm();
+
 
     // 1. 获取数据 (调用之前的 /exhibitions 接口)
     const fetchData = async (search: string = searchText, page: number = pagination.current) => {
@@ -68,6 +73,29 @@ const AdminExhibitions: React.FC = () => {
         industryService.getIndustryFields().then(setAllIndustryFields);
     }, []);
 
+    useEffect(() => {
+        loadHistory();
+    }, []);
+
+    const loadHistory = async () => {
+        try {
+            const data = await getSearchHistory();
+            setHistory(data);
+        } catch (e) { console.error("加载历史失败", e); }
+    };
+
+    const handleSearch = async (value: string) => {
+        setSearchText(value);
+        setPagination({ ...pagination, current: 1 }); // 重置到第一页
+        fetchData(value, 1);
+        // 执行搜索业务逻辑...
+        
+        if (value.trim()) {
+            await saveSearchHistory(value);
+            loadHistory(); // 重新加载以更新 UI
+        }
+    };
+
     // 处理国家切换
     const handleCountryChange = async (country: string) => {
 
@@ -87,25 +115,9 @@ const AdminExhibitions: React.FC = () => {
         }
     };
 
-    // 处理搜索
-    const onSearch = (value: string) => {
-        setSearchText(value);
-        setPagination({ ...pagination, current: 1 }); // 重置到第一页
-        fetchData(value, 1);
-    };
-
+    
     const handleEdit = async (record: ExhibitionData) => {
         setEditingFair(record);
-
-        const formData = {
-            ...record,
-            fair_start_date: record.fair_start_date ? dayjs(record.fair_start_date) : null,
-            fair_end_date: record.fair_end_date ? dayjs(record.fair_end_date) : null,
-            
-        };
-
-        form.setFieldsValue(formData); // 将行数据填充到表单
-
         if (record.country) {
             const p = await regionService.getProvinces(record.country);
             setProvinces(p);
@@ -114,33 +126,13 @@ const AdminExhibitions: React.FC = () => {
                 setCities(c);
             }
         }
-
         setIsEditModalOpen(true);
     };
 
-    const handleSaveUpdate = async () => {
-
-        try {
-            const values = await form.validateFields();
-
-            const submitData = {
-                ...values,
-
-                country: values.country || null,
-                province: values.province || null,
-                city: values.city || null,
-
-                fair_start_date: values.fair_start_date ? values.fair_start_date.format('YYYY-MM-DD') : null,
-                fair_end_date: values.fair_end_date ? values.fair_end_date.format('YYYY-MM-DD') : null,
-            };
-            
-            if (editingFair) {
-                await updateExhibition(editingFair.id, submitData);
-                message.success('更新成功');
-                setIsEditModalOpen(false);
-                fetchData();
-            }
-        } catch (e) { message.error('保存失败'); }
+    const showCreateModal = () => {
+        setEditingFair(null); // 清空当前编辑对象，表示新增
+        form.resetFields();   // 重置表单
+        setIsEditModalOpen(true);
     };
 
     const handleDelete = async (id: number) => {
@@ -148,8 +140,6 @@ const AdminExhibitions: React.FC = () => {
         message.success('删除成功');
         fetchData();
     };
-
-
 
     const handleMergeButtonClick = () => {
         if (selectedIds.length < 2) {
@@ -277,32 +267,16 @@ const AdminExhibitions: React.FC = () => {
             <div className="flex justify-between items-center mb-6 gap-4">
                 <h2 className="text-xl font-bold m-0">展会数据管理</h2>
 
-                {/* 1. 增加搜索框 */}
-                <Search
-                    placeholder="搜索展会名称、国家或城市..."
-                    allowClear
-                    enterButton="搜索"
-                    size="large"
-                    onSearch={onSearch}
-                    style={{ maxWidth: 400 }}
+                <ExhibitionHeader
+                    searchText={searchText}
+                    setSearchText={setSearchText}
+                    onSearch={handleSearch}
+                    history={history}
+                    selectedCount={selectedIds.length}
+                    onAdd={showCreateModal}
+                    onMerge={handleMergeButtonClick}
+                    onSeries={handleOpenSeriesModal}
                 />
-
-                <Space>
-                    <Button 
-                        type="primary"
-                        danger 
-                        disabled={selectedIds.length < 2}
-                        onClick={handleMergeButtonClick} // 修改这里：改为触发弹窗
-                    >
-                        合并选中项 ({selectedIds.length})
-                    </Button>
-                    <Button 
-                        type="primary" 
-                        disabled={selectedIds.length === 0}
-                        onClick={handleOpenSeriesModal} // 修改此处
-                    >归为系列</Button>
-                    <Button onClick={() => fetchData()}>刷新</Button>
-                </Space>
             </div>
 
             <Table 
@@ -321,6 +295,17 @@ const AdminExhibitions: React.FC = () => {
                     onChange: (page) => setPagination({ ...pagination, current: page }),
                     showSizeChanger: false,
                     showTotal: (total) => `共 ${total} 条记录`
+                }}
+            />
+
+            <ExhibitionMergeModal 
+                open={isMergeModalOpen}
+                selectedExhibitions={data.filter(f => selectedIds.includes(f.id))}
+                onCancel={() => setIsMergeModalOpen(false)}
+                onSuccess={() => {
+                    setIsMergeModalOpen(false);
+                    setSelectedIds([]);
+                    fetchData();
                 }}
             />
 
@@ -353,203 +338,21 @@ const AdminExhibitions: React.FC = () => {
             </Modal>
 
             {/* 编辑弹窗 */}
-            <Modal
-                title="编辑展会详情"
+            <ExhibitionEditModal 
                 open={isEditModalOpen}
-                onOk={handleSaveUpdate}
+                editingFair={editingFair}
                 onCancel={() => setIsEditModalOpen(false)}
-                width={1000} // 加宽到1000px，四列布局更美观
-                style={{ top: 20 }}
-                destroyOnHidden // 关闭时销毁，防止表单残留
-            >
-                <Form 
-                    form={form} 
-                    layout="vertical" 
-                    className="mt-4"
-                    initialValues={{ exhibitor_count: 0 }}
-                >
-                    {/* 第一行：名称相关 */}
-                    <Row gutter={24}>
-                        <Col span={12}>
-                            <Form.Item name="fair_name" label="展会原名" rules={[{ required: true }]}><Input /></Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item name="fair_name_trans" label="中文译名"><Input /></Form.Item>
-                        </Col>
-                    </Row>
-
-                    {/* 第二行：分类与系列 */}
-                    <Row gutter={24}>
-                        <Col span={6}>
-                            <Form.Item name="fair_series_id" label="系列ID"><InputNumber className="w-full" /></Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item name="fair_label" label="展会标签"><Input placeholder="如：专业展" /></Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item name="event_format" label="展会形式"><Input placeholder="如：线下" /></Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item name="period" label="举办周期"><Input placeholder="如：一年一届" /></Form.Item>
-                        </Col>
-                    </Row>
-
-                    <Form.Item name="website" label="官方网站"><Input /></Form.Item>
-
-                    <Form.Item name="industry_field" label="行业分类">
-                        <Select
-                            mode="multiple" // 开启多选+自由输入模式
-                            style={{ width: '100%' }}
-                            placeholder="请从下拉列表中选择行业分类"
-                            options={allIndustryFields.map(f => ({ label: f, value: f }))}
-                            optionFilterProp="label" // 开启搜索时按 label 过滤
-                            showSearch // 允许搜索，但搜索结果必须匹配选项
-                            onChange={(val) => {
-                                form.setFieldsValue({ industry_field: val && val.length > 0 ? val : null });
-                            }}
-                            allowClear
-                        />
-                    </Form.Item>
-                    
-
-                    {/* 第三行：地域信息 */}
-                    <Row gutter={24}>
-                        <Col span={8}>
-                            <Form.Item name="country" label="国家">
-                                <Select 
-                                    showSearch 
-   
-                                    onChange={handleCountryChange}
-                                    options={countries.map(c => ({ label: c, value: c }))}
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item name="province" label="省份">
-                                <Select 
-                                    showSearch
-                                    allowClear
-                                    placeholder="选择或手动输入省份"
-                                    options={provinces.map(p => ({ label: p, value: p }))}
-                                    // 核心 1：处理下拉选中的情况
-                                    onChange={(val) => {
-                                        form.setFieldsValue({ province: val });
-                                        handleProvinceChange(val); // 触发下级城市联动
-                                    }}
-                                    // 核心 2：处理手动输入但未选中的情况
-                                    onSearch={(val) => {
-                                        form.setFieldsValue({ province: val });
-                                    }}
-                                    // 解决你说的“不准确”问题：允许搜索框内容作为最终值
-                                    filterOption={(input, option) =>
-                                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                                    }
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item name="city" label="城市">
-                                <Select 
-                                    showSearch
-                                    allowClear
-                                    placeholder="选择或手动输入城市"
-                                    options={cities.map(c => ({ label: c, value: c }))}
-                                    // 同样的操作：支持手动搜索输入的值同步到 Form
-                                    onSearch={(val) => form.setFieldsValue({ city: val || null })} // 输入为空时设为 null
-                                    onChange={(val) => form.setFieldsValue({ city: val || null })}
-                                    onBlur={(e) => {
-                                        const val = (e.target as HTMLInputElement).value;
-                                        // 如果输入框彻底空了，同步为 null
-                                        if (!val) {
-                                            form.setFieldsValue({ city: null });
-                                        }
-                                    }}
-                                    filterOption={(input, option) =>
-                                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                                    }
-                                />
-                            </Form.Item>
-                        </Col>
-                  
-                    </Row>
-                            {/* 第五行：展馆与主办 */}
-                    <Row gutter={24}>
-                        <Col span={9}>
-                            <Form.Item name="pavilion" label="展馆名称"><Input /></Form.Item>
-                        </Col>
-                        <Col span={3}>
-                            <Form.Item name="pavilion_id" label="展馆ID"><InputNumber className="w-full" /></Form.Item>
-                        </Col>
-                     
-                    </Row>
-
-                    {/* 第四行：日期相关 */}
-                    <Row gutter={24}>
-                        <Col span={8}>
-                            <Form.Item name="fair_start_date" label="开始日期">
-                                <DatePicker className="w-full" format="YYYY-MM-DD" />
-                            </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item name="fair_end_date" label="结束日期">
-                                <DatePicker className="w-full" format="YYYY-MM-DD" />
-                            </Form.Item>
-                        </Col>
-  
-                    </Row>
-
-                    <Form.Item name="intro" label="展会简介">
-                        <TextArea rows={6} showCount maxLength={2000} />
-                    </Form.Item>
-
-                    <Row gutter={24}>
-                        <Col span={6}>
-                            <Form.Item name="open_hour" label="开展时段"><Input placeholder="如：09:00-18:00" /></Form.Item>
-                        </Col>
-                    </Row>
-
-            
-                    <Row gutter={24}>
-                        <Col span={9}>
-                            <Form.Item name="organizer_name" label="主办方名称"><Input /></Form.Item>
-                        </Col>
-                        <Col span={3}>
-                            <Form.Item name="organizer_id" label="主办方ID"><InputNumber className="w-full" /></Form.Item>
-                        </Col>
-                    </Row>
-
-                    {/* 第六行：联系方式 */}
-                    <Row gutter={24}>
-                        <Col span={8}>
-                            <Form.Item name="contact" label="联系人"><Input /></Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item name="phone" label="电话"><Input /></Form.Item>
-                        </Col>
-                        <Col span={8}>
-                            <Form.Item name="email" label="邮箱"><Input /></Form.Item>
-                        </Col>
-
-                    </Row>
-
-                   
-                    
-                    <Form.Item name="exhibition_items" label="展品范围">
-                        <TextArea rows={3} showCount maxLength={1000} />
-                    </Form.Item>
-                    
-                    
-                    
-                    <Row gutter={24}>
-                        <Col span={12}>
-                            <Form.Item name="logo_url" label="Logo 图片链接"><Input /></Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item name="banner_url" label="Banner 图片链接"><Input /></Form.Item>
-                        </Col>
-                    </Row>
-                </Form>
-            </Modal>
+                onSuccess={() => {
+                    setIsEditModalOpen(false); // 1. 关闭 Modal
+                    fetchData(searchText, pagination.current); // 2. 刷新列表数据
+                }}
+                countries={countries}
+                provinces={provinces}
+                cities={cities}
+                industries={allIndustryFields}
+                onCountryChange={handleCountryChange}
+                onProvinceChange={handleProvinceChange}
+            />
 
             <Modal
                 title="归为展会系列"
