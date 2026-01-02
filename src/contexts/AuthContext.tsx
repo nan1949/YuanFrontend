@@ -30,7 +30,6 @@ const MOCK_AVATAR_URL = 'https://via.placeholder.com/32/3b82f6/ffffff?text=U';
 // 使用 'null' 加上类型断言来初始化，确保在使用时不会是 null
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-
 // 4. 创建 Provider 组件
 interface AuthProviderProps {
     children: ReactNode;
@@ -45,22 +44,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
     
     const login = async ({ email, password }: LoginPayload) => {
-        // 实际应用中会调用 API
-        // OAuth2PasswordRequestForm 期望 application/x-www-form-urlencoded
+    
         const formData = new FormData();
         formData.append('username', email); // 对应 OAuth2 form 的 username
         formData.append('password', password);
 
         const tokenResponse = await api.post('/token', formData, {
-            // 明确覆盖 Content-Type 为 form-urlencoded
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
 
-        const accessToken: string = tokenResponse.data.access_token;
+        const { access_token, refresh_token, token_type } = tokenResponse.data;
         
-        // --- 步骤 2: 使用令牌获取用户信息 ---
         const userRes = await api.get('/users/me', {
-            headers: { Authorization: `Bearer ${accessToken}` }
+            headers: { Authorization: `${token_type} ${access_token}` }
         });
         
         const fullUser: User = {
@@ -69,21 +65,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
 
         // --- 步骤 3: 存储状态 ---
-        setToken(accessToken);
+        setToken(access_token);
         setUser(fullUser);
-        localStorage.setItem('token', accessToken);
+
+        localStorage.setItem('token', access_token);
+        localStorage.setItem('refresh_token', refresh_token);
+        localStorage.setItem('token_type', token_type);
         localStorage.setItem('user', JSON.stringify(fullUser));
         
     };
 
-    // 模拟登出函数
     const logout = () => {
-        // 清除状态
         setToken(null);
         setUser(null);
         localStorage.removeItem('token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
-        // 清除 Token 头部
         window.location.href = '/';
     };
 

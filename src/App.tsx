@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import { Outlet } from 'react-router-dom';
 import AdminExhibitions from './pages/admin/AdminExhibitions';
+import AdminPavilions from './pages/admin/AdminPavilions';
 
 import AdminLayout from './layouts/AdminLayout';
 import MainLayout from './layouts/MainLayout';
@@ -58,6 +59,7 @@ const App: React.FC = () => {
                         <Route path="/admin" element={<AdminLayout />}>
                             <Route index element={<div className="text-2xl">欢迎进入后台管理系统</div>} />
                             <Route path="exhibitions" element={<AdminExhibitions />} />
+                            <Route path='pavilions' element={ <AdminPavilions /> } />
                             {/* 可以在这里继续添加 Pavilion 管理等 */}
                             <Route path="*" element={
                                 <div className="p-10 text-center">

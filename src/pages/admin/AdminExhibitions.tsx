@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, message, Space, Form, Popconfirm
+import { Table, Button, message, Space, Popconfirm
 } from 'antd';
 import dayjs from 'dayjs';
 import { 
@@ -7,13 +7,14 @@ import {
     deleteExhibition, 
     getSearchHistory, 
     saveSearchHistory,
-    getEventFormats
+    getEventFormats,
+    getFrequencyTypes
 } from '../../services/exhibitionService';
 import ExhibitionHeader from '../../sections/admin/ExhibitionHeader';
 import ExhibitionEditModal from '../../components/admin/ExhibitionEditModal';
 import ExhibitionMergeModal from '../../components/admin/ExhibitionMergeModal';
 import ExhibitionSeriesModal from '../../components/admin/ExhibitionSeriesModal';
-import { ExhibitionData, EventFormat } from '../../types';
+import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
 import * as regionService from '../../services/regionService';
 import * as industryService from '../../services/industryService';
 
@@ -27,13 +28,13 @@ const AdminExhibitions: React.FC = () => {
     const [searchText, setSearchText] = useState<string>('');
     const [history, setHistory] = useState<string[]>([]);
     const [eventFormats, setEventFormats] = useState<EventFormat[]>([]);
+    const [frequencyTypes, setFrequencyTypes] = useState<FrequencyType[]>([]);
     
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     // 编辑相关的状态
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingFair, setEditingFair] = useState<ExhibitionData | null>(null);
-    const [form] = Form.useForm();
 
     const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
 
@@ -66,9 +67,12 @@ const AdminExhibitions: React.FC = () => {
             const countriesData = await regionService.getCountries();
             setCountries(countriesData);
 
-            // 🚀 获取展会形式标准备选项
-            const formats = await getEventFormats();
+            const [formats, freqs] = await Promise.all([
+                getEventFormats(),
+                getFrequencyTypes() // 🚀 获取举办周期
+            ]);
             setEventFormats(formats);
+            setFrequencyTypes(freqs);
 
             industryService.getIndustryFields().then(setAllIndustryFields);
 
@@ -115,9 +119,8 @@ const AdminExhibitions: React.FC = () => {
     };
 
     // 处理省份切换
-    const handleProvinceChange = async (province: string) => {
+    const handleProvinceChange = async (country: string, province: string) => {
     
-        const country = form.getFieldValue('country');
         if (country && province) {
             const data = await regionService.getCities(country, province);
             setCities(data);
@@ -140,7 +143,6 @@ const AdminExhibitions: React.FC = () => {
 
     const showCreateModal = () => {
         setEditingFair(null); // 清空当前编辑对象，表示新增
-        form.resetFields();   // 重置表单
         setIsEditModalOpen(true);
     };
 
@@ -279,6 +281,7 @@ const AdminExhibitions: React.FC = () => {
                 cities={cities}
                 industries={allIndustryFields}
                 eventFormats={eventFormats} // 传递数据源
+                frequencyTypes={frequencyTypes} // 🚀 传下去
                 onCountryChange={handleCountryChange}
                 onProvinceChange={handleProvinceChange}
             />

@@ -1,6 +1,5 @@
 // src/services/api.ts
 import axios from 'axios';
-import { message } from 'antd';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,6 +11,8 @@ const api = axios.create({
     },
     timeout: 10000, // 设置 10 秒超时
 });
+
+let isRefreshing = false;
 
 // 2. 请求拦截器：自动注入 Token
 api.interceptors.request.use(
@@ -31,39 +32,55 @@ api.interceptors.request.use(
 // 3. 响应拦截器：统一处理错误（如 401, 403）
 api.interceptors.response.use(
     (response) => {
-        // 如果后端返回的是标准数据结构，可以在这里统一剥离一层
         return response;
     },
-    (error) => {
-        const { response } = error;
+    async (error) => {
+        const { response, config } = error;
 
-        if (response) {
-            switch (response.status) {
-                case 401:
-                    // Token 过期或无效
-                    message.error('登录已过期，请重新登录');
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    // 如果不是在登录页，则跳转
-                    if (!window.location.pathname.includes('/login')) {
-                        window.location.href = '/login';
-                    }
-                    break;
-                case 403:
-                    message.error('权限不足，无法执行此操作');
-                    break;
-                case 500:
-                    message.error('服务器内部错误，请稍后再试');
-                    break;
-                default:
-                    message.error(response.data?.detail || '请求发生错误');
+        // 如果报 401 (Token 过期)
+        if (response?.status === 401) {
+            // 如果已经是刷新接口报错，说明 refresh_token 也过期了，直接登出
+            if (config.url.includes('/refresh')) {
+                handleGlobalLogout();
+                return Promise.reject(error);
             }
-        } else {
-            message.error('网络异常，请检查您的网络连接');
+
+            const refreshToken = localStorage.getItem('refresh_token');
+            const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
+            if (refreshToken && !isRefreshing) {
+                isRefreshing = true;
+                try {
+                    // 🚀 调用后端 refresh 接口
+                    // 根据你后端 user_router.py 的逻辑，refresh_token 应该放在 Authorization 头里
+                    const res = await axios.post(`${API_BASE_URL}/refresh`, {}, {
+                        headers: { Authorization: `${tokenType} ${refreshToken}` }
+                    });
+
+                    // 后端刷新接口通常返回新的 access_token
+                    const { access_token } = res.data;
+                    localStorage.setItem('token', access_token);
+
+                    // 重新发起之前失败的请求
+                    config.headers.Authorization = `${tokenType} ${access_token}`;
+                    isRefreshing = false;
+                    return api(config);
+                } catch (refreshError) {
+                    isRefreshing = false;
+                    handleGlobalLogout();
+                    return Promise.reject(refreshError);
+                }
+            }
         }
-        
         return Promise.reject(error);
     }
 );
+
+const handleGlobalLogout = () => {
+    localStorage.clear(); // 清理所有相关 token
+    if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+    }
+};
 
 export default api;

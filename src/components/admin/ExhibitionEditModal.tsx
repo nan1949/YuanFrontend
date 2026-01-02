@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, message } from 'antd';
+import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, message, Spin } from 'antd';
 import dayjs from 'dayjs';
-import { ExhibitionData, EventFormat } from '../../types';
+import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
 import { updateExhibition, createExhibition } from '../../services/exhibitionService';
+import { getPavilions, getPavilionById } from '../../services/pavilionService';
+
 
 const { TextArea } = Input;
 
@@ -16,17 +18,22 @@ interface ExhibitionEditModalProps {
     cities: string[];
     industries: any[];
     eventFormats: EventFormat[]; // 增加展会形式数据源
+    frequencyTypes: FrequencyType[];
     onCountryChange: (country: string) => void;
-    onProvinceChange: (province: string) => void;
+    onProvinceChange: (country: string, province: string) => void;
 }
 
 const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
     open, editingFair, onCancel, onSuccess, countries, provinces, cities, industries, eventFormats,
+    frequencyTypes,
     onCountryChange, onProvinceChange
 }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [startDateRef, setStartDateRef] = useState<dayjs.Dayjs | null>(null);
+
+    const [pavilionOptions, setPavilionOptions] = useState<{ label: string; value: number }[]>([]);
+    const [fetchingPavilions, setFetchingPavilions] = useState(false);
 
     // 监听打开状态，填充或重置表单
     useEffect(() => {
@@ -45,6 +52,60 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
             }
         }
     }, [open, editingFair, form]);
+
+    useEffect(() => {
+        const fetchPavilionInfo = async () => {
+            // 只有当打开 Modal 且有 pavilion_id 时才触发
+            if (open && editingFair?.pavilion_id) {
+                try {
+                    // 🚀 调用获取单个展馆详情的接口
+                    // 注意：如果你的 service 里还没有这个方法，需要补充（见下方第2步）
+                    const pavilion = await getPavilionById(editingFair.pavilion_id);
+                    
+                    if (pavilion) {
+                        setPavilionOptions([{
+                            label: pavilion.pavilion_name_trans 
+                                ? `${pavilion.pavilion_name} (${pavilion.pavilion_name_trans})` 
+                                : pavilion.pavilion_name,
+                            value: pavilion.id
+                        }]);
+                    }
+                } catch (error) {
+                    console.error("回显展馆信息失败:", error);
+                    // 容错处理：如果查不到名称，至少把 ID 显示出来
+                    setPavilionOptions([{
+                        label: `展馆 ID: ${editingFair.pavilion_id}`,
+                        value: editingFair.pavilion_id
+                    }]);
+                }
+            } else if (open && !editingFair?.pavilion_id) {
+                // 如果是新增或没有绑定展馆，清空选项
+                setPavilionOptions([]);
+            }
+        };
+
+        fetchPavilionInfo();
+    }, [open, editingFair?.pavilion_id]); // 监听 ID 的变化
+
+    const handlePavilionSearch = async (value: string) => {
+        if (!value) return;
+        setFetchingPavilions(true);
+        try {
+            // 调用之前定义的获取展馆接口
+            const res = await getPavilions({ page: 1, limit: 20, keyword: value });
+            const options = res.items.map(p => ({
+                label: p.pavilion_name_trans 
+                    ? `${p.pavilion_name} (${p.pavilion_name_trans})` 
+                    : p.pavilion_name,
+                value: p.id
+            }));
+            setPavilionOptions(options);
+        } catch (error) {
+            message.error('搜索展馆失败');
+        } finally {
+            setFetchingPavilions(false);
+        }
+    };
 
     const handleSubmit = async () => {
         try {
@@ -175,7 +236,8 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                                 // 核心 1：处理下拉选中的情况
                                 onChange={(val) => {
                                     form.setFieldsValue({ province: val });
-                                    onProvinceChange(val); // 触发下级城市联动
+                                    const currentCountry = form.getFieldValue('country');
+                                    onProvinceChange(currentCountry, val); // 触发下级城市联动
                                 }}
                                 // 核心 2：处理手动输入但未选中的情况
                                 onSearch={(val) => {
@@ -213,16 +275,31 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                     </Col>
                 
                 </Row>
-                        {/* 第五行：展馆与主办 */}
-                <Row gutter={24}>
-                    <Col span={9}>
-                        <Form.Item name="pavilion" label="展馆名称"><Input /></Form.Item>
-                    </Col>
-                    <Col span={3}>
-                        <Form.Item name="pavilion_id" label="展馆ID"><InputNumber className="w-full" /></Form.Item>
-                    </Col>
-                    
-                </Row>
+                {/* 第五行：展馆与主办 */}
+             
+                <Form.Item 
+                    name="pavilion_id" 
+                    label="所属展馆"
+                >
+                    <Select
+                        showSearch
+                        placeholder="请搜索并选择展馆"
+                        filterOption={false} // 关闭本地过滤，使用远程搜索
+                        onSearch={handlePavilionSearch}
+                        loading={fetchingPavilions}
+                        notFoundContent={fetchingPavilions ? <Spin size="small" /> : '未找到相关展馆'}
+                        options={pavilionOptions}
+                        allowClear
+                        // 选中后，如果需要同步更新 exhibition 表中的 pavilion 冗余字段
+                        onChange={(value, option: any) => {
+                            if (option) {
+                                // 假设你希望在提交时同时带有名称，可以手动设置隐藏字段或依赖后端处理
+                                form.setFieldsValue({ pavilion: option.label });
+                            }
+                        }}
+                    />
+                </Form.Item>
+               
 
                 {/* 第四行：日期相关 */}
                 <Row gutter={24}>
@@ -248,7 +325,24 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                         </Form.Item>
                     </Col>
                     <Col span={8}>
-                        <Form.Item name="period" label="举办周期"><Input placeholder="如：一年一届" /></Form.Item>
+                        <Form.Item name="period" label="举办周期">
+                            <Select 
+                                showSearch 
+                                allowClear
+                                placeholder="请选择或输入举办周期"
+                                optionFilterProp="filterText"
+                                options={frequencyTypes.map(f => ({
+                                    // 展示：一年一届 (Annual)
+                                    label: f.en ? `${f.zh} (${f.en})` : f.zh, 
+                                    // 提交：一年一届
+                                    value: f.zh,
+                                    // 搜索增强
+                                    filterText: `${f.zh} ${f.en}` 
+                                }))}
+                            />
+                        
+                        </Form.Item>
+                        
                     </Col>
 
                 </Row>

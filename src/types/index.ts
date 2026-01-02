@@ -10,6 +10,11 @@ export interface EventFormat {
     en: string;
 }
 
+export interface FrequencyType {
+    zh: string;
+    en: string;
+}
+
 
 export interface ExhibitionData {
   id: number;
@@ -29,9 +34,7 @@ export interface ExhibitionData {
   province: string; 
   city: string;
   pavilion_id: number;
-  pavilion: string; 
   organizer_id: number;
-  organizer_name: string;
   period:string;
   contact: string,
   phone: string,
@@ -100,4 +103,18 @@ export interface ExhibitorData {
     brands: string | null;
     products: string | null;
     booth_number: string | null;
+}
+
+
+export interface Pavilion {
+  id: number;
+  pavilion_name: string;
+  pavilion_name_trans: string | null;
+  intro: string | null;
+  website: string | null;
+  country: string;
+  province: string; 
+  city: string;
+  address: string | null;
+  space: number | null;
 }
