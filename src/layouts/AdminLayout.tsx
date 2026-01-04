@@ -14,7 +14,7 @@ const AdminLayout: React.FC = () => {
           <Link to="/admin/exhibitions" className="block px-6 py-3 hover:bg-slate-800">展会管理</Link>
           <Link to="/admin/organizers" className="block px-6 py-3 hover:bg-slate-800">主办方管理</Link>
           <Link to="/admin/pavilions" className="block px-6 py-3 hover:bg-slate-800">展馆管理</Link>
-  
+          <Link to="/admin/industris" className="block px-6 py-3 hover:bg-slate-800">行业分类管理</Link>
         </nav>
       </aside>
 

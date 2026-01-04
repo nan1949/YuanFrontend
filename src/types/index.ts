@@ -118,3 +118,28 @@ export interface Pavilion {
   address: string | null;
   space: number | null;
 }
+
+export interface IndustryCategory {
+    id: number;
+    name_zh: string;
+    name_en: string;
+    parent_id: number;
+    level: number;
+    sort_order: number;
+    children?: IndustryCategory[];
+    _isNew?: boolean; // 🚀 增加这一行，表示这是个可选的标识位
+}
+
+// 定义主办方数据的类型，确保类型安全
+export interface Organizer {
+  id: number;
+  organizer_name: string;
+  organizer_name_trans: string | null;
+  website: string | null;
+  organizer_type: string | null;
+  country: string;
+  province: string; 
+  city: string;
+  intro: string | null;
+  logo_url: string | null;
+}

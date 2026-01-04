@@ -1,33 +1,39 @@
-import axios from 'axios';
+import api from './api';
+import { Organizer } from '../types';
 
-// 从环境变量中获取 API 基础 URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-// 定义主办方数据的类型，确保类型安全
-export interface Organizer {
-  organizer_name: string;
-  organizer_name_trans: string | null;
-  website: string | null;
-  organizer_type: string | null;
-  intro: string | null;
-  logo_url: string | null;
-  representative_exhibition?: string; // 示例中没有，这里添加以匹配表格
-  id: number;
+export interface OrganizerPagination {
+    total: number;
+    page: number;
+    limit: number;
+    items: Organizer[];
 }
 
-export const getOrganizers = async (): Promise<Organizer[]> => {
-  if (!API_BASE_URL) {
-    console.error("API_BASE_URL is not defined in the environment.");
-    throw new Error('API 地址未配置。');
-  }
 
-  try {
-    const response = await axios.get(`${API_BASE_URL}/organizers?skip=0&limit=5`);
-    // axios 自动解析 JSON 并返回类型化的数据
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch organizers:", error);
-    // 捕获并抛出错误，以便组件可以处理
-    throw new Error('无法获取主办方数据。');
-  }
+export const getOrganizers = async (params: { page: number; limit: number; keyword?: string }) => {
+    const res = await api.get<OrganizerPagination>('/organizers', { params });
+    return res.data;
+};
+
+
+// 创建主办方
+export const createOrganizer = async (data: Partial<Organizer>) => {
+    return api.post('/organizers', data);
+};
+
+// 更新主办方
+export const updateOrganizer = async (id: number, data: Partial<Organizer>) => {
+    return api.put(`/organizers/${id}`, data);
+};
+
+// 删除主办方
+export const deleteOrganizer = async (id: number) => {
+    return api.delete(`/organizers/${id}`);
+};
+
+// 合并主办方
+export const mergeOrganizers = async (keep_id: number, duplicate_ids: number[]) => {
+    return api.post('/organizers/merge', {
+        keep_id,
+        duplicate_ids_to_delete: duplicate_ids
+    });
 };

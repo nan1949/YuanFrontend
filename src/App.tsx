@@ -18,6 +18,8 @@ import ProfilePage from './pages/client/ProfilePage';
 import logoUrl from './assets/logo1.svg';
 import { AuthProvider } from './contexts/AuthContext';
 import AdminRoute from './components/admin/AdminRoute';
+import AdminIndustries from './pages/admin/AdminIndustries';
+import AdminOrganizers from './pages/admin/AdminOrganizers';
 
 
 
@@ -60,6 +62,8 @@ const App: React.FC = () => {
                             <Route index element={<div className="text-2xl">欢迎进入后台管理系统</div>} />
                             <Route path="exhibitions" element={<AdminExhibitions />} />
                             <Route path='pavilions' element={ <AdminPavilions /> } />
+                            <Route path='industris' element={ <AdminIndustries /> } />
+                            <Route path='organizers' element={ <AdminOrganizers /> } />
                             {/* 可以在这里继续添加 Pavilion 管理等 */}
                             <Route path="*" element={
                                 <div className="p-10 text-center">
