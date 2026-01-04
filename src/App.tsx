@@ -8,12 +8,12 @@ import AdminPavilions from './pages/admin/AdminPavilions';
 import AdminLayout from './layouts/AdminLayout';
 import MainLayout from './layouts/MainLayout';
 
-import HomePage from './pages/HomePage';
-import ExhibitionDetailPage from './pages/ExhibitionDetailPage';
-import ExhibitionsPage from './pages/ExhibitionsPage';
-import ExhibitorSearchPage from './pages/Companiespage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import HomePage from './pages/client/HomePage';
+import ExhibitionDetailPage from './pages/client/ExhibitionDetailPage';
+import ExhibitionsPage from './pages/client/ExhibitionsPage';
+import ExhibitorSearchPage from './pages/client/Companiespage';
+import LoginPage from './pages/client/LoginPage';
+import RegisterPage from './pages/client/RegisterPage';
 import ProfilePage from './pages/client/ProfilePage';
 import logoUrl from './assets/logo1.svg';
 import { AuthProvider } from './contexts/AuthContext';

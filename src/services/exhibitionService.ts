@@ -7,21 +7,20 @@ export interface PaginatedExhibitionsResponse {
     results: ExhibitionData[];
 }
 
+export interface ExhibitionSearchParams {
+    page: number;
+    size: number;
+    search_name?: string | null;
+    organizer_id?: number | null;
+    date_status?: 'expired' | 'ongoing' | null;
+}
+
 
 export const getExhibitions = async (
-  search_name?: string | null, 
-  page: number = 1,
-  size: number = 10 
+    params: ExhibitionSearchParams
 ): Promise<PaginatedExhibitionsResponse> => {
   try {
-    let url = `/exhibitions?page=${page}&size=${size}`;
-
-    if (search_name && search_name.trim() !== '') {
-            url += `&search_name=${encodeURIComponent(search_name.trim())}`;
-        }
-
-    const response= await api.get<PaginatedExhibitionsResponse>(url);
-
+    const response = await api.post<PaginatedExhibitionsResponse>(`/exhibitions/search`, params);
     return response.data;
 
   } catch (error) {

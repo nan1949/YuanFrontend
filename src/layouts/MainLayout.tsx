@@ -1,6 +1,6 @@
 import React from 'react';
-import NavSection from '../sections/NavSection';
-import FooterSection from '../sections/FooterSection';
+import NavSection from '../sections/client/NavSection';
+import FooterSection from '../sections/client/FooterSection';
 
 interface MainLayoutProps {
     children: React.ReactNode;

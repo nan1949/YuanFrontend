@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Input, Button, Space, AutoComplete, Divider } from 'antd';
+import { Input, Button, Space, AutoComplete, Divider, Select } from 'antd';
 import { PlusOutlined, MergeCellsOutlined, ApartmentOutlined } from '@ant-design/icons';
+import { Organizer } from '../../types';
+import { getOrganizers } from '../../services/organizerService';
 
 interface ExhibitionHeaderProps {
   searchText: string;
   setSearchText: (val: string) => void;
-  onSearch: (val: string) => void;
+  onSearch: (params: { search_name?: string; organizer_id?: number; date_status?: string }) => void;
   history: string[];
   selectedCount: number;
   onAdd: () => void;
@@ -17,6 +19,24 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
   const { history, onSearch, searchText, setSearchText, selectedCount } = props;
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [organizers, setOrganizers] = useState<Organizer[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState<number | undefined>();
+  const [dateStatus, setDateStatus] = useState<string | undefined>();
+
+  const handleOrgSearch = async (value: string) => {
+    if (value) {
+      const res = await getOrganizers({ page: 1, limit: 20, keyword: value });
+      setOrganizers(res.items);
+    }
+  };
+
+  const handleApplyFilter = () => {
+    onSearch({
+      search_name: searchText,
+      organizer_id: selectedOrgId,
+      date_status: dateStatus
+    });
+  };
 
   const options = history.map(item => ({
     value: item,
@@ -30,7 +50,7 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
 
   const handleSearchInternal = (value: string) => {
     setDropdownOpen(false); // 点击搜索时立即关闭下拉框
-    onSearch(value);
+    onSearch({ search_name: value, organizer_id: selectedOrgId, date_status: dateStatus });
     // 搜索后让输入框失去焦点，彻底防止下拉框再次弹出
     (document.activeElement as HTMLElement)?.blur();
   };
@@ -62,11 +82,42 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
         >
           <Input.Search
             placeholder="搜索展会名称..."
-            onSearch={handleSearchInternal}
+            onSearch={handleApplyFilter}
             enterButton
             allowClear
           />
         </AutoComplete>
+
+        <Select
+          showSearch
+          placeholder="筛选主办方"
+          allowClear
+          style={{ width: 200 }}
+          filterOption={false}
+          onSearch={handleOrgSearch}
+          onChange={(val) => {
+            setSelectedOrgId(val);
+            onSearch({ search_name: searchText, organizer_id: val, date_status: dateStatus });
+          }}
+        >
+          {organizers.map(org => (
+            <Select.Option key={org.id} value={org.id}>{org.organizer_name}</Select.Option>
+          ))}
+        </Select>
+
+          <Select
+            placeholder="日期状态"
+            allowClear
+            style={{ width: 120 }}
+            onChange={(val) => {
+              setDateStatus(val);
+              onSearch({ search_name: searchText, organizer_id: selectedOrgId, date_status: val });
+            }}
+          >
+            <Select.Option value="ongoing">进行中</Select.Option>
+            <Select.Option value="expired">已过期</Select.Option>
+          </Select>
+
       </div>
 
       {/* 右侧：操作按钮组（位置固定，仅改变状态） */}

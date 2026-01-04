@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback  } from 'react';
-import SearchResultCount from '../components/SearchResultCount';
-import ExhibitionCard from '../components/ExhibitionCard';
-import PaginationControls from '../components/PaginationControls';
-import { ExhibitionData } from '../types';
-import { getExhibitions } from '../services/exhibitionService';
-import SearchBox from '../components/SearchBox';
-import useTitle from '../hooks/useTitle';
-import Container from '../components/Container';
+import SearchResultCount from '../../components/SearchResultCount';
+import ExhibitionCard from '../../components/ExhibitionCard';
+import PaginationControls from '../../components/PaginationControls';
+import { ExhibitionData } from '../../types';
+import { getExhibitions } from '../../services/exhibitionService';
+import SearchBox from '../../components/SearchBox';
+import useTitle from '../../hooks/useTitle';
+import Container from '../../components/Container';
 
 const INITIAL_PAGE_SIZE = 10; 
 

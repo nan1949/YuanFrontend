@@ -25,10 +25,16 @@ const AdminExhibitions: React.FC = () => {
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [searchText, setSearchText] = useState<string>('');
+
     const [history, setHistory] = useState<string[]>([]);
     const [eventFormats, setEventFormats] = useState<EventFormat[]>([]);
     const [frequencyTypes, setFrequencyTypes] = useState<FrequencyType[]>([]);
+
+    const [filters, setFilters] = useState({
+        search_name: '',
+        organizer_id: undefined as number | undefined,
+        date_status: undefined as string | undefined
+    });
     
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
@@ -48,10 +54,19 @@ const AdminExhibitions: React.FC = () => {
 
 
     // 1. 获取数据 (调用之前的 /exhibitions 接口)
-    const fetchData = async (search: string = searchText, page: number = pagination.current) => {
+    const fetchData = async (
+        currentFilters = filters, 
+        page = pagination.current
+    ) => {
         setLoading(true);
         try {
-            const res = await getExhibitions(search, page, pagination.pageSize);
+            const res = await getExhibitions({
+                page: page,
+                size: pagination.pageSize,
+                search_name: currentFilters.search_name,
+                organizer_id: currentFilters.organizer_id,
+                date_status: currentFilters.date_status as any
+            });
             setData(res.results);
             setTotal(res.total_count);
         } catch (error) {
@@ -82,7 +97,7 @@ const AdminExhibitions: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchData();
+        fetchData(filters, pagination.current);
     }, [pagination.current]);
 
     useEffect(() => {
@@ -97,15 +112,16 @@ const AdminExhibitions: React.FC = () => {
         } catch (e) { console.error("加载历史失败", e); }
     };
 
-    const handleSearch = async (value: string) => {
-        setSearchText(value);
-        setPagination({ ...pagination, current: 1 }); // 重置到第一页
-        fetchData(value, 1);
+    const handleSearch = async (newFilters: { search_name?: string; organizer_id?: number; date_status?: string }) => {
+        const mergedFilters = { ...filters, ...newFilters };
+        setFilters(mergedFilters);
+        setPagination(prev => ({ ...prev, current: 1 })); // 重置页码
+        fetchData(mergedFilters, 1);
         // 执行搜索业务逻辑...
         
-        if (value.trim()) {
-            await saveSearchHistory(value);
-            loadHistory(); // 重新加载以更新 UI
+        if (newFilters.search_name?.trim()) {
+            await saveSearchHistory(newFilters.search_name);
+            loadHistory();
         }
     };
 
@@ -226,8 +242,8 @@ const AdminExhibitions: React.FC = () => {
                 <h2 className="text-xl font-bold m-0">展会数据管理</h2>
 
                 <ExhibitionHeader
-                    searchText={searchText}
-                    setSearchText={setSearchText}
+                    searchText={filters.search_name}
+                    setSearchText={(val) => setFilters(f => ({ ...f, search_name: val }))}
                     onSearch={handleSearch}
                     history={history}
                     selectedCount={selectedIds.length}
@@ -274,7 +290,7 @@ const AdminExhibitions: React.FC = () => {
                 onCancel={() => setIsEditModalOpen(false)}
                 onSuccess={() => {
                     setIsEditModalOpen(false); // 1. 关闭 Modal
-                    fetchData(searchText, pagination.current); // 2. 刷新列表数据
+                    fetchData(filters, pagination.current); // 2. 刷新列表数据
                 }}
                 countries={countries}
                 provinces={provinces}

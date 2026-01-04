@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { ExhibitionData, ExhibitorData } from '../types';
-import { getExhibitionDetail } from '../services/exhibitionService';
-import SearchResultCount from '../components/SearchResultCount';
-import PaginationControls from '../components/PaginationControls';
-import useTitle from '../hooks/useTitle';
-import TabButton from '../components/TabButton';
-import Container from '../components/Container';
-import { getExhibitorsByFair } from '../services/exhibitorService';
-import ExhibitorRow from '../components/ExhibitorRow';
+import { ExhibitionData, ExhibitorData } from '../../types';
+import { getExhibitionDetail } from '../../services/exhibitionService';
+import SearchResultCount from '../../components/SearchResultCount';
+import PaginationControls from '../../components/PaginationControls';
+import useTitle from '../../hooks/useTitle';
+import TabButton from '../../components/TabButton';
+import Container from '../../components/Container';
+import { getExhibitorsByFair } from '../../services/exhibitorService';
+import ExhibitorRow from '../../components/ExhibitorRow';
 
 
 const formatDate = (dateString?: string | null): string => {
@@ -292,7 +292,7 @@ const ExhibitionDetailPage: React.FC = () => {
                     <div>
                         <DetailItem label="日期" value={`${startDate} 至 ${endDate}`} />
                         <DetailItem label="周期" value={exhibition.period || '—'} />
-                        <DetailItem label="主办方" value={exhibition.organizer_name || '—'} />
+       
                     </div>
                     
                     <div>
@@ -303,7 +303,7 @@ const ExhibitionDetailPage: React.FC = () => {
                                     .join(', ') || '—'
                             }`
                         } />
-                        <DetailItem label="展馆" value={exhibition.pavilion || '—'} />
+                   
                     
                         <DetailItem label="官网">
                             <a href={exhibition.website || '#'} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 break-all">
