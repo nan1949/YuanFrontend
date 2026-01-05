@@ -6,7 +6,7 @@ const AdminLayout: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Admin 侧边栏 */}
-      <aside className="w-64 bg-slate-900 text-white flex-shrink-0">
+      <aside className="w-52 bg-slate-900 text-white flex-shrink-0">
         <div className="p-6 text-xl font-bold border-b border-slate-800">
           GlobalFair Admin
         </div>

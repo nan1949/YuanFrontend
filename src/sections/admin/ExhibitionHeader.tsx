@@ -56,9 +56,8 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
   };
 
   return (
-    <div className="mb-4 flex justify-between items-center">
-      {/* 左侧：固定搜索框 */}
-      <div className="flex-shrink-0">
+    <div className="mb-4 flex flex-wrap items-center gap-3">
+  
         <AutoComplete
           open={dropdownOpen}
           onBlur={() => setDropdownOpen(false)}
@@ -118,11 +117,10 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
             <Select.Option value="expired">已过期</Select.Option>
           </Select>
 
-      </div>
-
-      {/* 右侧：操作按钮组（位置固定，仅改变状态） */}
-      <div className="flex items-center space-x-3 ml-3">
-        <Space size="small">
+        <div className="flex-1" />
+    
+   
+        <Space>
           {/* 归为系列：至少选中 1 项 */}
           <Button 
             icon={<ApartmentOutlined />} 
@@ -153,7 +151,7 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
             新增展会
           </Button>
         </Space>
-      </div>
+     
     </div>
   );
 };

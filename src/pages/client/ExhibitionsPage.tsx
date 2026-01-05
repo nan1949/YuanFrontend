@@ -29,7 +29,12 @@ const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
     const fetchExhibitions = async () => {
       setLoading(true);
       try {
-        const response = await getExhibitions(searchTerm, currentPage, pageSize);
+        const response = await getExhibitions({
+          search_name: searchTerm, 
+          page: currentPage, 
+          size: pageSize
+
+        });
 
         setExhibitions(response.results);
         setTotalCount(response.total_count);

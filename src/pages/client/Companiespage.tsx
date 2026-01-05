@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import SearchResultCount from '../../components/SearchResultCount';
 import CompanyCard from '../../components/CompanyCard';
-import { CompanyData } from '../../types'; 
-import { getExhibitors } from '../../services/exhibitorService'; 
+import { ExhibitorData } from '../../types'; 
+import { searchExhibitors } from '../../services/exhibitorService'; 
 import SearchBox from '../../components/SearchBox';
 import useTitle from '../../hooks/useTitle';
 import Container from '../../components/Container';
@@ -19,7 +19,7 @@ const ExhibitorSearchPage: React.FC<ExhibitorSearchPageProps> = () => {
 
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
 
-  const [exhibitors, setExhibitors] = useState<CompanyData[] | null>(null);
+  const [exhibitors, setExhibitors] = useState<ExhibitorData[] | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [pageSize, setPageSize] = useState(INITIAL_PAGE_SIZE); 
@@ -34,8 +34,12 @@ const ExhibitorSearchPage: React.FC<ExhibitorSearchPageProps> = () => {
       setLoading(true);
       try {
   
-        const response = await getExhibitors(searchTerm, currentPage, pageSize);
-        setExhibitors(response.results);
+        const response = await searchExhibitors({
+          search_name:searchTerm, 
+          page: currentPage, 
+          page_size: pageSize
+        });
+        setExhibitors(response.data);
         setTotalCount(response.total_count);
       } catch (e) {
          console.error("Fetch exhibitor error:", e);

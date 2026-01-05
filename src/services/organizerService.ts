@@ -14,6 +14,11 @@ export const getOrganizers = async (params: { page: number; limit: number; keywo
     return res.data;
 };
 
+export const getOrganizerById = async (id: number) => {
+    const res = await api.get<Organizer>(`/organizers/${id}`);
+    return res.data;
+};
+
 
 // 创建主办方
 export const createOrganizer = async (data: Partial<Organizer>) => {

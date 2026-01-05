@@ -7,7 +7,7 @@ import PaginationControls from '../../components/PaginationControls';
 import useTitle from '../../hooks/useTitle';
 import TabButton from '../../components/TabButton';
 import Container from '../../components/Container';
-import { getExhibitorsByFair } from '../../services/exhibitorService';
+import { searchExhibitors } from '../../services/exhibitorService';
 import ExhibitorRow from '../../components/ExhibitorRow';
 
 
@@ -106,7 +106,7 @@ const ExhibitionDetailPage: React.FC = () => {
                 try {
                     const dateParam = selectedDate ? selectedDate : undefined;
 
-                    const response = await getExhibitorsByFair({
+                    const response = await searchExhibitors({
                         fair_id: Number(id),
                         fair_date: dateParam, // 使用当前选中的日期
                         country: selectedCountry,

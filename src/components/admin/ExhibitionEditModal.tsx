@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, message, Spin } from 'antd';
+import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, message, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
 import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
 import { updateExhibition, createExhibition } from '../../services/exhibitionService';
 import { getPavilions, getPavilionById } from '../../services/pavilionService';
+import { getOrganizers, getOrganizerById } from '../../services/organizerService';
 
 
 const { TextArea } = Input;
@@ -16,7 +17,7 @@ interface ExhibitionEditModalProps {
     countries: string[];
     provinces: string[];
     cities: string[];
-    industries: any[];
+    industries: string[];
     eventFormats: EventFormat[]; // 增加展会形式数据源
     frequencyTypes: FrequencyType[];
     onCountryChange: (country: string) => void;
@@ -34,6 +35,9 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
 
     const [pavilionOptions, setPavilionOptions] = useState<{ label: string; value: number }[]>([]);
     const [fetchingPavilions, setFetchingPavilions] = useState(false);
+
+    const [organizerOptions, setOrganizerOptions] = useState<{ label: string; value: number }[]>([]);
+    const [fetchingOrganizers, setFetchingOrganizers] = useState(false);
 
     // 监听打开状态，填充或重置表单
     useEffect(() => {
@@ -86,6 +90,53 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
 
         fetchPavilionInfo();
     }, [open, editingFair?.pavilion_id]); // 监听 ID 的变化
+
+    useEffect(() => {
+        const fetchOrganizerDetail = async () => {
+            // 当打开弹窗且有 organizer_id 时触发
+            if (open && editingFair?.organizer_id) {
+                try {
+                    const org = await getOrganizerById(editingFair.organizer_id);
+                    if (org) {
+                        setOrganizerOptions([{
+                            label: org.organizer_name_trans 
+                                ? `${org.organizer_name} (${org.organizer_name_trans})` 
+                                : org.organizer_name,
+                            value: org.id
+                        }]);
+                    }
+                } catch (error) {
+                    console.error("回显主办方信息失败:", error);
+                    // 容错：查不到详情时至少显示 ID
+                    setOrganizerOptions([{ label: `主办方 ID: ${editingFair.organizer_id}`, value: editingFair.organizer_id }]);
+                }
+            } else if (open && !editingFair?.organizer_id) {
+                setOrganizerOptions([]);
+            }
+        };
+
+        fetchOrganizerDetail();
+    }, [open, editingFair?.organizer_id]);
+
+    const handleOrganizerSearch = async (value: string) => {
+        if (!value) return;
+        setFetchingOrganizers(true);
+        try {
+            // 调用之前编写的主办方分页查询接口
+            const res = await getOrganizers({ page: 1, limit: 20, keyword: value });
+            const options = res.items.map(o => ({
+                label: o.organizer_name_trans 
+                    ? `${o.organizer_name} (${o.organizer_name_trans})` 
+                    : o.organizer_name,
+                value: o.id
+            }));
+            setOrganizerOptions(options);
+        } catch (error) {
+            message.error('搜索主办方失败');
+        } finally {
+            setFetchingOrganizers(false);
+        }
+    };
 
     const handlePavilionSearch = async (value: string) => {
         if (!value) return;
@@ -201,16 +252,41 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
 
                 <Form.Item name="industry_field" label="行业分类">
                     <Select
-                        mode="multiple" // 开启多选+自由输入模式
+                        mode="tags" // 开启多选+自由输入模式
                         style={{ width: '100%' }}
                         placeholder="请从下拉列表中选择行业分类"
-                        options={industries.map(f => ({ label: f, value: f }))}
-                        optionFilterProp="label" // 开启搜索时按 label 过滤
-                        showSearch // 允许搜索，但搜索结果必须匹配选项
-                        onChange={(val) => {
-                            form.setFieldsValue({ industry_field: val && val.length > 0 ? val : null });
+                        tagRender={(props) => {
+                            const { label, value, closable, onClose } = props;
+                            
+                            // 检查当前值是否在标准行业库中
+                            const isStandard = industries.includes(value);
+                            
+                            const onPreventMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            };
+
+                            return (
+                                <Tag
+                                    color={isStandard ? 'blue' : 'red'} // 标准用蓝色，非标准用红色
+                                    onMouseDown={onPreventMouseDown}
+                                    closable={closable}
+                                    onClose={onClose}
+                                    style={{ marginRight: 3, marginTop: 2 }}
+                                    // 如果是非标准，增加一个提示
+                                    title={isStandard ? '' : '此标签不在标准行业库中'}
+                                >
+                                    {label}
+                                </Tag>
+                            );
                         }}
-                        allowClear
+                        options={industries.map(f => ({ label: f, value: f }))}
+                        // optionFilterProp="label" // 开启搜索时按 label 过滤
+                        // showSearch // 允许搜索，但搜索结果必须匹配选项
+                        // onChange={(val) => {
+                        //     form.setFieldsValue({ industry_field: val && val.length > 0 ? val : null });
+                        // }}
+                        // allowClear
                     />
                 </Form.Item>
                 
@@ -290,13 +366,6 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                         notFoundContent={fetchingPavilions ? <Spin size="small" /> : '未找到相关展馆'}
                         options={pavilionOptions}
                         allowClear
-                        // 选中后，如果需要同步更新 exhibition 表中的 pavilion 冗余字段
-                        onChange={(value, option: any) => {
-                            if (option) {
-                                // 假设你希望在提交时同时带有名称，可以手动设置隐藏字段或依赖后端处理
-                                form.setFieldsValue({ pavilion: option.label });
-                            }
-                        }}
                     />
                 </Form.Item>
                
@@ -358,11 +427,23 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                 </Form.Item>
 
                 <Row gutter={24}>
-                    <Col span={9}>
-                        <Form.Item name="organizer_name" label="主办方名称"><Input /></Form.Item>
-                    </Col>
-                    <Col span={3}>
-                        <Form.Item name="organizer_id" label="主办方ID"><InputNumber className="w-full" /></Form.Item>
+                    <Col span={24}>
+                        <Form.Item 
+                            name="organizer_id" 
+                            label="关联主办方"
+                            tooltip="输入名称搜索并从下拉列表中选择"
+                        >
+                            <Select
+                                showSearch
+                                placeholder="搜索主办方名称"
+                                filterOption={false}
+                                onSearch={handleOrganizerSearch}
+                                loading={fetchingOrganizers}
+                                notFoundContent={fetchingOrganizers ? <Spin size="small" /> : '未找到相关主办方'}
+                                options={organizerOptions}
+                                allowClear
+                            />
+                        </Form.Item>
                     </Col>
                 </Row>
 

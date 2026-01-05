@@ -48,39 +48,6 @@ export interface ExhibitionData {
   exhibitor_count?: number;   // 展商人数
 }
 
-export interface ExpoInfo {
-  fair_start_date: string;
-  fair_end_date: string;
-  hall: string; 
-  booth_number: string;
-  country: string;
-  province: string;
-  city: string; 
-}
-
-
-export interface CompanyData {
-  id: string;
-  fair_id: number;
-  exhibitor_name: string;
-  uni_code: string;
-  legal_person: string;
-  register_date: string;
-  registered_capital: string;
-  company_name: string;
-  website: string[];
-  intro: string;
-  country: string;
-  province: string;
-  city: string; 
-  logo_url?: string;
-  category: string[];
-  products:string;
-  email:string[];
-  phone:string[];
-  
-  expo_info: ExpoInfo[]
-}
 
 export interface ExhibitorData {
     // 保持原有的核心字段
