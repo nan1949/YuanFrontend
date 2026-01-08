@@ -69,6 +69,7 @@ export interface ExhibitorData {
     email: string | null;
     brands: string | null;
     products: string | null;
+    category: string | null;
     booth_number: string | null;
 }
 

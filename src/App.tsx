@@ -20,6 +20,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import AdminRoute from './components/admin/AdminRoute';
 import AdminIndustries from './pages/admin/AdminIndustries';
 import AdminOrganizers from './pages/admin/AdminOrganizers';
+import AdminExhibitors from './pages/admin/AdminExhibitors';
 
 
 
@@ -64,6 +65,7 @@ const App: React.FC = () => {
                             <Route path='pavilions' element={ <AdminPavilions /> } />
                             <Route path='industris' element={ <AdminIndustries /> } />
                             <Route path='organizers' element={ <AdminOrganizers /> } />
+                            <Route path='exhibitors' element={ <AdminExhibitors /> } />
                             {/* 可以在这里继续添加 Pavilion 管理等 */}
                             <Route path="*" element={
                                 <div className="p-10 text-center">

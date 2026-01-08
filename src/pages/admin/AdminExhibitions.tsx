@@ -163,9 +163,17 @@ const AdminExhibitions: React.FC = () => {
     };
 
     const handleDelete = async (id: number) => {
+        try {
         await deleteExhibition(id);
         message.success('删除成功');
-        fetchData();
+        
+        // 🚀 核心修复：删除成功后清空选中项状态
+        setSelectedIds([]); 
+        
+        fetchData(filters, pagination.current);
+    } catch (error) {
+        message.error('删除失败');
+    }
     };
 
     const handleMergeButtonClick = () => {
