@@ -108,10 +108,10 @@ const AdminExhibitors: React.FC = () => {
     ];
 
     return (
-        <div className="p-6">
-            <Card title="展商资源管理" bordered={false}>
+        <div className="p-4">
+            <Card className="shadow-sm" bordered={false}>
                 {/* 搜索与筛选区域 */}
-                <div className="flex flex-wrap gap-4 mb-6">
+                <div className="mb-4 flex items-center flex-wrap gap-3">
                     <Input
                         placeholder="搜索展商名称..."
                         style={{ width: 250 }}

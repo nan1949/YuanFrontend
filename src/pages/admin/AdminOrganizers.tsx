@@ -105,8 +105,8 @@ const AdminOrganizers: React.FC = () => {
     ];
 
     return (
-        <div className="p-6">
-            <Card title="主办方资源管理" bordered={false}>
+        <div className="p-4">
+            <Card className="shadow-sm" bordered={false}>
                 <div className="flex justify-between mb-4">
                     <Input.Search
                         placeholder="搜索主办方原名或中文名"

@@ -117,8 +117,8 @@ const AdminPavilions: React.FC = () => {
     ];
 
     return (
-        <div className="p-6">
-            <Card title="展馆资源管理" bordered={false}>
+        <div className="p-4">
+            <Card className="shadow-sm" bordered={false}>
                 <div className="flex justify-between mb-4">
                     <Space>
                         <Input.Search

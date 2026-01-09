@@ -30,13 +30,7 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
     }
   };
 
-  const handleApplyFilter = () => {
-    onSearch({
-      search_name: searchText,
-      organizer_id: selectedOrgId,
-      date_status: dateStatus
-    });
-  };
+  
 
   const options = history.map(item => ({
     value: item,
@@ -48,12 +42,24 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
     )
   }));
 
-  const handleSearchInternal = (value: string) => {
-    setDropdownOpen(false); // 点击搜索时立即关闭下拉框
-    onSearch({ search_name: value, organizer_id: selectedOrgId, date_status: dateStatus });
-    // 搜索后让输入框失去焦点，彻底防止下拉框再次弹出
-    (document.activeElement as HTMLElement)?.blur();
+  const executeSearch = (name?: string) => {
+    // 确保使用传入的 name 或当前 state 中的 searchText
+    const finalSearchName = name ?? searchText;
+
+    // 统一的 UI 处理：关闭下拉框并失去焦点
+    setDropdownOpen(false);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    // 执行最终的搜索回调
+    onSearch({
+      search_name: finalSearchName,
+      organizer_id: selectedOrgId,
+      date_status: dateStatus
+    });
   };
+
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -71,7 +77,7 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
           value={searchText}
           onSelect={(val) => {
             setSearchText(val);
-            handleSearchInternal(val); // 选择历史记录后直接触发搜索并关闭
+            executeSearch(val); // 选择历史记录后直接触发搜索并关闭
           }}
           onChange={(val) => {
             setSearchText(val);
@@ -81,7 +87,7 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
         >
           <Input.Search
             placeholder="搜索展会名称..."
-            onSearch={handleApplyFilter}
+            onSearch={() => executeSearch()}
             enterButton
             allowClear
           />
