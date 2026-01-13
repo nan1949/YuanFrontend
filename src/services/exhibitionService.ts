@@ -13,6 +13,8 @@ export interface ExhibitionSearchParams {
     search_name?: string | null;
     organizer_id?: number | null;
     date_status?: 'expired' | 'ongoing' | null;
+    sort_by?: 'country' | 'fair_start_date' | null;
+    sort_order?: 'asc' | 'desc' | null;
 }
 
 

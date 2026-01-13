@@ -66,6 +66,10 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
   
         <AutoComplete
           open={dropdownOpen}
+          onDropdownVisibleChange={(visible) => {
+              // 只有在非搜索点击的情况下才允许组件自动改变状态
+              setDropdownOpen(visible);
+          }}
           onBlur={() => setDropdownOpen(false)}
           onFocus={() => {
              // 只有当有历史记录时，获取焦点才打开

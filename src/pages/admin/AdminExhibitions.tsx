@@ -52,11 +52,17 @@ const AdminExhibitions: React.FC = () => {
 
     const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
 
+    const [sortConfig, setSortConfig] = useState<{
+        columnKey: 'country' | 'fair_start_date' | null,
+        order: 'asc' | 'desc' | null
+    }>({ columnKey: null, order: null });
+
 
     // 1. 获取数据 (调用之前的 /exhibitions 接口)
     const fetchData = async (
         currentFilters = filters, 
-        page = pagination.current
+        page = pagination.current,
+        currentSort = sortConfig // 新增
     ) => {
         setLoading(true);
         try {
@@ -65,7 +71,10 @@ const AdminExhibitions: React.FC = () => {
                 size: pagination.pageSize,
                 search_name: currentFilters.search_name,
                 organizer_id: currentFilters.organizer_id,
-                date_status: currentFilters.date_status as any
+                date_status: currentFilters.date_status as any,
+                // --- 传递排序到后端 ---
+                sort_by: currentSort.columnKey,
+                sort_order: currentSort.order
             });
             setData(res.results);
             setTotal(res.total_count);
@@ -97,13 +106,13 @@ const AdminExhibitions: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchData(filters, pagination.current);
-    }, [pagination.current]);
-
-    useEffect(() => {
         loadInitialData();
         loadHistory();
     }, []);
+
+    useEffect(() => {
+        fetchData(filters, pagination.current, sortConfig);
+    }, [pagination.current, sortConfig]); // 增加 sortConfig 依赖
 
     const loadHistory = async () => {
         try {
@@ -191,6 +200,23 @@ const AdminExhibitions: React.FC = () => {
         setIsSeriesModalOpen(true);
     };
 
+    // 处理分页、排序变化
+    const handleTableChange = (paginationInfo: any, filters: any, sorter: any) => {
+        // 更新分页状态
+        setPagination(prev => ({ ...prev, current: paginationInfo.current }));
+
+        // 处理排序逻辑
+        if (sorter.field && sorter.order) {
+            setSortConfig({
+                columnKey: sorter.field,
+                order: sorter.order === 'ascend' ? 'asc' : 'desc'
+            });
+        } else {
+            // 如果取消排序
+            setSortConfig({ columnKey: null, order: null });
+        }
+    };
+
     const columns = [
         { title: 'ID', dataIndex: 'id', width: 70 },
         { 
@@ -203,7 +229,12 @@ const AdminExhibitions: React.FC = () => {
                 </div>
             )
         },
-        { title: '国家', dataIndex: 'country', width: 100 },
+        { 
+            title: '国家', 
+            dataIndex: 'country', 
+            width: 100,
+            sorter: true, // 开启排序 UI
+        },
         { 
             title: '官网', 
             dataIndex: 'website', 
@@ -214,6 +245,7 @@ const AdminExhibitions: React.FC = () => {
             title: '开展时间', 
             dataIndex: 'fair_start_date', 
             width: 110,
+            sorter: true, // 开启排序 UI
             render: (text: string) => text ? dayjs(text).format('YYYY-MM-DD') : '-'
         },
         { 
@@ -267,6 +299,7 @@ const AdminExhibitions: React.FC = () => {
                     columns={columns} 
                     rowKey="id" 
                     scroll={{ x: 1200 }}
+                    onChange={handleTableChange}
                     pagination={{
                         total: total,
                         current: pagination.current,
