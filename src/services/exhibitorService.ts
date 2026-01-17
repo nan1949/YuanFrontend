@@ -43,6 +43,7 @@ export const searchExhibitors = async (
   if (search_name?.trim()) requestBody.search_name = search_name.trim();
   if (country) requestBody.country = country;
   if (fair_date) requestBody.fair_date = fair_date;
+  console.log(requestBody)
 
   try {
     // 2. 使用 api 实例发送 POST 请求
@@ -68,4 +69,29 @@ export const searchExhibitors = async (
     console.error("Exhibitor Search Failed:", error);
     throw new Error(error.response?.data?.detail || '无法获取展商数据');
   }
+};
+
+
+export const uploadExhibitorsExcel = async (fairId: number, file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('fair_id', fairId.toString());
+
+    const response = await api.post('/exhibitors/upload-excel', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
+
+export const uploadExhibitorsTxt = async (fairId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('fair_id', fairId.toString());
+    formData.append('file', file);
+    
+    const response = await api.post('/exhibitors/upload-txt', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
 };

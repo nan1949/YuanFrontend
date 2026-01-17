@@ -21,6 +21,7 @@ import AdminRoute from './components/admin/AdminRoute';
 import AdminIndustries from './pages/admin/AdminIndustries';
 import AdminOrganizers from './pages/admin/AdminOrganizers';
 import AdminExhibitors from './pages/admin/AdminExhibitors';
+import AdminExhibitionDetailView from './pages/admin/AdminExhibitionDetailView'
 
 
 
@@ -62,6 +63,7 @@ const App: React.FC = () => {
                         <Route path="/admin" element={<AdminLayout />}>
                             <Route index element={<div className="text-2xl">欢迎进入后台管理系统</div>} />
                             <Route path="exhibitions" element={<AdminExhibitions />} />
+                            <Route path="exhibitions/:id" element={<AdminExhibitionDetailView />} />
                             <Route path='pavilions' element={ <AdminPavilions /> } />
                             <Route path='industris' element={ <AdminIndustries /> } />
                             <Route path='organizers' element={ <AdminOrganizers /> } />

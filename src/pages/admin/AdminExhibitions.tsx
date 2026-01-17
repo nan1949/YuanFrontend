@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, Button, message, Space, Popconfirm, Card
 } from 'antd';
 import dayjs from 'dayjs';
@@ -56,6 +57,8 @@ const AdminExhibitions: React.FC = () => {
         columnKey: 'country' | 'fair_start_date' | null,
         order: 'asc' | 'desc' | null
     }>({ columnKey: null, order: null });
+
+    const navigate = useNavigate();
 
 
     // 1. 获取数据 (调用之前的 /exhibitions 接口)
@@ -264,9 +267,16 @@ const AdminExhibitions: React.FC = () => {
             title: '操作',
             key: 'action',
             fixed: 'right' as const,
-            width: 120,
+            width: 180,
             render: (_: any, record: ExhibitionData) => (
                 <Space>
+                    <Button 
+                        type="link" 
+                        size="small" 
+                        onClick={() => navigate(`/admin/exhibitions/${record.id}`)}
+                    >
+                        查看详情
+                    </Button>
                     <Button type="link" size="small" onClick={() => handleEdit(record)}>编辑</Button>
                     <Popconfirm title="确定删除吗?" onConfirm={() => handleDelete(record.id)}>
                         <Button type="link" size="small" danger>删除</Button>

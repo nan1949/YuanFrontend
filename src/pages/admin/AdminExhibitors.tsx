@@ -8,7 +8,13 @@ import dayjs from 'dayjs';
 const { Option } = Select;
 const { Text } = Typography;
 
-const AdminExhibitors: React.FC = () => {
+interface AdminExhibitorsProps {
+    initialFairId?: number; // 新增：初始展会ID
+    isSubView?: boolean;    // 新增：是否作为子页面展示
+    onRef?: React.RefObject<any>; // 接收 ref
+}
+
+const AdminExhibitors: React.FC<AdminExhibitorsProps> = ({ initialFairId, isSubView, onRef }) => {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<ExhibitorData[]>([]);
     const [total, setTotal] = useState(0);
@@ -25,7 +31,8 @@ const AdminExhibitors: React.FC = () => {
         page_size: 10,
         search_name: '',
         country: undefined,
-        fair_date: undefined
+        fair_date: undefined,
+        fair_id: initialFairId // 使用传入的 ID
     });
 
     const fetchData = async (currentParams = params) => {
@@ -55,6 +62,14 @@ const AdminExhibitors: React.FC = () => {
     useEffect(() => {
         fetchData(params);
     }, [params.page, params.country, params.fair_date]); // 搜索点击触发，其他即时触发
+
+    useEffect(() => {
+        if (onRef) {
+            (onRef as any).current = {
+                fetchData: () => fetchData()
+            };
+        }
+    }, [params]);
 
     const columns = [
         {
@@ -108,8 +123,8 @@ const AdminExhibitors: React.FC = () => {
     ];
 
     return (
-        <div className="p-4">
-            <Card className="shadow-sm" bordered={false}>
+        <div className={isSubView ? "" : "p-4"}>
+            <Card className="shadow-sm" bordered={!isSubView}>
                 {/* 搜索与筛选区域 */}
                 <div className="mb-4 flex items-center flex-wrap gap-3">
                     <Input
