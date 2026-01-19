@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback  } from 'react';
 import SearchResultCount from '../../components/SearchResultCount';
-import ExhibitionCard from '../../components/ExhibitionCard';
+import ExhibitionCard from '../../components/client/ExhibitionCard';
 import PaginationControls from '../../components/PaginationControls';
 import { ExhibitionData } from '../../types';
 import { getExhibitions } from '../../services/exhibitionService';
@@ -24,9 +24,16 @@ const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(INITIAL_PAGE_SIZE); 
 
+  const [isLoggedIn] = useState(() => !!localStorage.getItem('token'));
+
 
   useEffect(() => {
     const fetchExhibitions = async () => {
+      if (!isLoggedIn && (currentPage > 1 || searchTerm)) {
+        alert("请登录后使用搜索和翻页功能"); // 也可以改为更加美观的 Toast 提示
+        return;
+      }
+
       setLoading(true);
       try {
         const response = await getExhibitions({
@@ -48,16 +55,28 @@ const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
     };
 
     fetchExhibitions();
-  }, [searchTerm, currentPage, pageSize]);
+  }, [searchTerm, currentPage, pageSize, isLoggedIn]);
 
   const handleSearchTermChange = useCallback((newSearchTerm: string) => {
+    if (!isLoggedIn) {
+      alert("请登录后进行搜索");
+      return;
+    }
     setCurrentPage(1); 
     setSearchTerm(newSearchTerm);
-  }, []);
+  }, [isLoggedIn]);
 
   const handlePageChange = useCallback((newPage: number) => {
+      if (!isLoggedIn) {
+        alert("请登录后查看更多结果");
+        return;
+      }
+      if (newPage > 10) {
+        alert("仅支持查看前 10 页数据，请用搜索词。");
+        return;
+      }
       setCurrentPage(newPage);
-  }, []);
+  }, [isLoggedIn]);
 
   const handlePageSizeChange = useCallback((newSize: number) => {
       setPageSize(newSize);
@@ -118,7 +137,7 @@ const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
             
 
            {/* 展会卡片列表 */}
-           <div className="px-4 divide-y divide-gray-200">
+           <div className="px-4 pb-6 divide-y divide-gray-200">
               
                 {exhibitions.map((expo) => (
                   <ExhibitionCard key={expo.id} data={expo} />
@@ -126,7 +145,7 @@ const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
             </div>
             
             {/* 分页控制 */}
-            {totalPages > 1 && <PaginationControls 
+            {isLoggedIn && totalPages > 1 && <PaginationControls 
                 totalCount={totalCount}
                 currentPage={currentPage}
                 pageSize={pageSize}

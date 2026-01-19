@@ -1,14 +1,43 @@
 import React from 'react';
 import { Link } from 'react-router-dom'; 
-import { ExhibitionData } from '../types';
-import { card2ndTitleClasses, cardClasses, cardRowClasses, cardTitleClasses } from '../styles/tailwindStyles';
-import TagGroup from './TagGroup';
-import InfoItem from './InfoItem';
+import { ExhibitionData } from '../../types';
+import { card2ndTitleClasses, cardClasses, cardRowClasses, cardTitleClasses } from '../../styles/tailwindStyles';
+import TagGroup from '../TagGroup';
 
 // 辅助函数：格式化日期
 const formatDate = (dateString: string | null): string => {
   if (!dateString) return '待定';
   return dateString.split('T')[0];
+};
+
+interface InfoItemProps {
+  label: string;
+  value: string;
+}
+
+const InfoItem: React.FC<InfoItemProps> = ({ label, value }) => {
+
+  const placeholder = '—'; 
+
+  const displayValue = value ? value : placeholder;
+
+  const titleText = value ? value : 'N/A';
+
+  return (
+    <div className="flex items-center">
+
+      <span className="text-gray-400 flex-shrink-0">
+        {label}：
+      </span>
+
+      <span 
+        className="text-gray-600 truncate" 
+        title={titleText}
+      >
+        {displayValue}
+      </span>
+    </div>
+  );
 };
 
 
@@ -19,6 +48,8 @@ const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
   const locationString = [data.country, data.province, data.city]
                           .filter(Boolean)
                           .join(', ')
+
+    const isLoggedIn = !!localStorage.getItem('token');
 
   return (
    <div className={cardClasses}>
@@ -75,7 +106,7 @@ const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
 
                 <InfoItem 
                     label='展馆'
-                    value={data.pavilion}
+                    value='待调整'
                 />
             </div>
           
@@ -83,12 +114,36 @@ const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
             <div className={cardRowClasses}>
                 <InfoItem 
                     label='主办方'
-                    value={data.organizer_name}
+                    value='待调整'
                 />
-                <InfoItem 
-                    label='官网'
-                    value={data.website}
-                />
+                <div className="flex items-center">
+                    <span className="text-gray-400 flex-shrink-0">官网：</span>
+                    {!isLoggedIn ? (
+                        // 未登录状态：显示置灰文字
+                        <div
+                            className="relative cursor-pointer group"
+                        >
+                            <span className="text-blue-400 blur-[3px] select-none">
+                                登录后查看
+                            </span>
+                            <span className="absolute left-0 -top-6 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-lg">
+                                登录后查看
+                            </span>
+                        </div>
+                        
+                    ) : data.website ? (
+                        <a 
+                            href={data.website.startsWith('http') ? data.website : `https://${data.website}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline truncate max-w-[500px]"
+                        >
+                            {data.website}
+                        </a>
+                    ) : (
+                        <span className="text-gray-600 truncate">暂无</span>
+                    )}
+                </div>
             </div>
 
             {/* 5. 介绍区域 */}

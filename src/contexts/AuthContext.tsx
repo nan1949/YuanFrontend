@@ -6,7 +6,7 @@ interface User {
     id: number;
     email: string;
     full_name: string;
-    avatarUrl: string; // 默认头像URL
+    avatar_url: string; // 默认头像URL
     is_admin: boolean; // 🚀 新增
 }
 
@@ -21,10 +21,10 @@ interface AuthContextType {
     token: string | null;
     login: (payload: LoginPayload) => Promise<void>;
     logout: () => void;
+    updateUserInfo: (updates: Partial<User>) => void; // 🚀 新增
 }
 
 
-const MOCK_AVATAR_URL = 'https://via.placeholder.com/32/3b82f6/ffffff?text=U';
 
 // 3. 创建 Context，并指定类型
 // 使用 'null' 加上类型断言来初始化，确保在使用时不会是 null
@@ -60,8 +60,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
         
         const fullUser: User = {
-            ...userRes.data,
-            avatarUrl: MOCK_AVATAR_URL,
+            ...userRes.data
         };
 
         // --- 步骤 3: 存储状态 ---
@@ -84,11 +83,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         window.location.href = '/';
     };
 
+    const updateUserInfo = (updates: Partial<User>) => {
+        if (user) {
+            const newUser = { ...user, ...updates };
+            setUser(newUser);
+            localStorage.setItem('user', JSON.stringify(newUser)); // 同步到本地存储
+        }
+    };
+
     const contextValue: AuthContextType = { 
         user, 
         token, 
         login, 
-        logout
+        logout,
+        updateUserInfo
     };
 
     return (

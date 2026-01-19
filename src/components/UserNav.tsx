@@ -25,7 +25,7 @@ const UserNav: React.FC = () => {
        
             <div className="flex items-center space-x-2 cursor-default relative py-2">
                 <img
-                    src={user.avatarUrl}
+                    src={user.avatar_url}
                     alt={user.full_name || 'User'}
                     className="h-8 w-8 rounded-full border-2 border-blue-500 object-cover shadow-sm"
                 />
