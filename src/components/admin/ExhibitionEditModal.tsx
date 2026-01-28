@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, message, Spin, Tag } from 'antd';
+import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, message, Spin, Tag, Space } from 'antd';
 import dayjs from 'dayjs';
 import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
 import { updateExhibition, createExhibition } from '../../services/exhibitionService';
@@ -48,6 +48,11 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                 setStartDateRef(start);
                 form.setFieldsValue({
                     ...editingFair,
+
+                    country_id_trigger: editingFair.country_id,
+                    province_id_trigger: editingFair.province_id,
+                    city_id_trigger: editingFair.city_id,
+
                     fair_start_date: start,
                     fair_end_date: editingFair.fair_end_date ? dayjs(editingFair.fair_end_date) : null,
                 });
@@ -91,6 +96,19 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
 
         fetchPavilionInfo();
     }, [open, editingFair?.pavilion_id]); // 监听 ID 的变化
+
+    useEffect(() => {
+        // 只要有任何地区 ID 变动，就预加载该地区下的前 50 个场馆
+        const cid = form.getFieldValue('country_id');
+        if (cid || open) {
+            handlePavilionSearch(''); 
+        }
+    }, [
+        form.getFieldValue('country_id'), 
+        form.getFieldValue('province_id'), 
+        form.getFieldValue('city_id'),
+        open
+    ]);
 
     useEffect(() => {
         const fetchOrganizerDetail = async () => {
@@ -139,12 +157,22 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
         }
     };
 
-    const handlePavilionSearch = async (value: string) => {
-        if (!value) return;
+    const handlePavilionSearch = async (val: string) => {
+  
         setFetchingPavilions(true);
         try {
+            const country_id = form.getFieldValue('country_id');
+            const province_id = form.getFieldValue('province_id');
+            const city_id = form.getFieldValue('city_id');
             // 调用之前定义的获取展馆接口
-            const res = await getPavilions({ page: 1, limit: 20, keyword: value });
+            const res = await getPavilions({ 
+                page: 1, 
+                limit: 50, 
+                keyword: val,
+                country_id: country_id || undefined,
+                province_id: province_id || undefined,
+                city_id: city_id || undefined
+            });
             const options = res.items.map(p => ({
                 label: p.pavilion_name_trans 
                     ? `${p.pavilion_name} (${p.pavilion_name_trans})` 
@@ -157,6 +185,43 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
         } finally {
             setFetchingPavilions(false);
         }
+    };
+
+    const handleCountrySelect = (value: number, option: any) => {
+        form.setFieldsValue({
+            country: option.name_zh, // 提交名称
+            country_id: value,       // 提交 ID
+            iso_code: option.iso_code, // 提交 iso_code
+            // 重置下级
+            province: null,
+            province_id: null,
+            city: null,
+            city_id: null,
+            pavilion_id: null // 国家换了，场馆通常也要重选
+        });
+        onCountryChange(value);
+        setPavilionOptions([]); // 清空旧的场馆选项
+    };
+
+    const handleProvinceSelect = (value: number, option: any) => {
+        form.setFieldsValue({
+            province: option.name_zh,
+            province_id: value,
+            city: null,
+            city_id: null,
+            pavilion_id: null // 国家换了，场馆通常也要重选
+        });
+        onProvinceChange(value);
+        setPavilionOptions([]); // 清空旧的场馆选项
+    };
+
+    const handleCitySelect = (value: number, option: any) => {
+        form.setFieldsValue({
+            city: option.name_zh,
+            city_id: value,
+            pavilion_id: null // 国家换了，场馆通常也要重选
+        });
+        setPavilionOptions([]); // 清空旧的场馆选项
     };
 
     const handleSubmit = async () => {
@@ -293,59 +358,67 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                 
 
                 {/* 第三行：地域信息 */}
+                <Form.Item name="country_id" hidden><Input /></Form.Item>
+                <Form.Item name="province_id" hidden><Input /></Form.Item>
+                <Form.Item name="city_id" hidden><Input /></Form.Item>
+                <Form.Item name="iso_code" hidden><Input /></Form.Item>
                 <Row gutter={24}>
                     <Col span={8}>
-                        <Form.Item name="country" label="国家"  rules={[{ required: true }]}>
+                        <Form.Item name="country_id_trigger" label="国家"  rules={[{ required: true }]}>
                             <Select 
                                 showSearch 
                                 placeholder="选择或手动输入国家"
-                                onChange={onCountryChange}
-                                fieldNames={{ label: 'name_zh', value: 'id' }}
-                                options={countries}
+                                optionFilterProp="name_zh"
+                                onChange={handleCountrySelect}
+                                options={countries.map(c => ({
+                                    ...c,
+                                    label: (
+                                        <Space>
+                                            {c.iso_code && <span className={`fi fi-${c.iso_code.toLowerCase()}`} />}
+                                            {c.name_zh}
+                                        </Space>
+                                    ),
+                                    value: c.id,
+                                    name_zh: c.name_zh, // 存入 option 方便 handle 提取
+                                    iso_code: c.iso_code
+                                }))}
                             />
                         </Form.Item>
+                        <Form.Item name="country" hidden><Input /></Form.Item>
                     </Col>
                     <Col span={8}>
-                        <Form.Item name="province" label="省份">
+                        <Form.Item name="province_id_trigger" label="省份">
                             <Select 
                                 showSearch
                                 allowClear
                                 placeholder="选择或手动输入省份"
-                                fieldNames={{ label: 'name_zh', value: 'id' }}
-                                options={provinces}
-                                // 核心 1：处理下拉选中的情况
-                                onChange={(val) => {
-                                    form.setFieldsValue({ province: val });
-                                    onProvinceChange(val); // 触发下级城市联动
-                                }}
-                                // 核心 2：处理手动输入但未选中的情况
-                                onSearch={(val) => {
-                                    form.setFieldsValue({ province: val });
-                                }}
-                             
+                                optionFilterProp="name_zh"
+                                onChange={handleProvinceSelect}
+                                options={provinces.map(p => ({
+                                    label: p.name_zh,
+                                    value: p.id,
+                                    name_zh: p.name_zh
+                                }))}
                             />
                         </Form.Item>
+                        <Form.Item name="province" hidden><Input /></Form.Item>
                     </Col>
                     <Col span={8}>
-                        <Form.Item name="city" label="城市">
+                        <Form.Item name="city_id_trigger" label="城市">
                             <Select 
                                 showSearch
                                 allowClear
                                 placeholder="选择或手动输入城市"
-                                options={cities}
-                                // 同样的操作：支持手动搜索输入的值同步到 Form
-                                onSearch={(val) => form.setFieldsValue({ city: val || null })} // 输入为空时设为 null
-                                onChange={(val) => form.setFieldsValue({ city: val || null })}
-                                onBlur={(e) => {
-                                    const val = (e.target as HTMLInputElement).value;
-                                    // 如果输入框彻底空了，同步为 null
-                                    if (!val) {
-                                        form.setFieldsValue({ city: null });
-                                    }
-                                }}
-                            
+                                optionFilterProp="name_zh"
+                                onChange={handleCitySelect}
+                                options={cities.map(c => ({
+                                    label: c.name_zh,
+                                    value: c.id,
+                                    name_zh: c.name_zh
+                                }))}
                             />
                         </Form.Item>
+                        <Form.Item name="city" hidden><Input /></Form.Item>
                     </Col>
                 
                 </Row>

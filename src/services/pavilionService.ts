@@ -10,12 +10,20 @@ export interface PavilionPaginationResponse {
     items: Pavilion[];
 }
 
+export interface PavilionSearchParams {
+    page: number;
+    limit: number;
+    keyword?: string;
+    country_id?: number;
+    province_id?: number;
+    city_id?: number;
+}
+
 
 export const getPavilions = async (
-    params: { page: number; limit: number; keyword?: string }
+    params: PavilionSearchParams
 ) => {
-    const res = await api.get<PavilionPaginationResponse>('/pavilions', { params });
-    console.log(res.data)
+    const res = await api.post<PavilionPaginationResponse>('/pavilions/search', params );
     return res.data;
 };
 
