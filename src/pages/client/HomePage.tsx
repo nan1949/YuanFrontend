@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import useTitle from '../../hooks/useTitle';
 import Container from '../../components/Container';
 import { Link } from 'react-router-dom'; 
-import { ExhibitionData } from '../../types';
+import { ExhibitionData, ExhibitorData } from '../../types';
 import ExhibitionFeaturedCard from '../../components/ExhibitionFeaturedCard';
 import { getExhibitions } from '../../services/exhibitionService';
+import { getRecentDynamics } from '../../services/exhibitorService';
+import { RecentDynamic } from '../../services/exhibitorService';
 
 const DISPLAY_COUNT = 6;
 
@@ -19,12 +21,18 @@ const HomePage: React.FC<HomePageProps> = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [dynamics, setDynamics] = useState<RecentDynamic[]>([]);
+  const [dynLoading, setDynLoading] = useState(true);
+
   const fetchTopExhibitions = useCallback(async () => {
     setLoading(true);
     setError(null); // 重置错误状态
     try {
       // 关键修改: 只请求第 1 页，大小为 DISPLAY_COUNT (3)
-      const response = await getExhibitions(null, 1, DISPLAY_COUNT); 
+      const response = await getExhibitions({
+        page: 1,
+        size: DISPLAY_COUNT
+      }); 
       
       setExhibitions(response.results.slice(0, DISPLAY_COUNT)); // 确保最多只显示 3 条
 
@@ -37,56 +45,90 @@ const HomePage: React.FC<HomePageProps> = () => {
     }
   }, []); // 依赖项为空数组，只在组件挂载时执行一次
 
+
+  const fetchRecentDynamics = useCallback(async () => {
+    setDynLoading(true);
+    const data = await getRecentDynamics(10); // 获取最近8条
+    setDynamics(data);
+    setDynLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchTopExhibitions();
+    fetchRecentDynamics(); // 同时加载企业动态
   }, [fetchTopExhibitions]);
+
+  const formatFullDate = (dateStr: string) => {
+    if (!dateStr) return '待定';
+    // 兼容 T 分隔的 ISO 格式，取第一部分
+    return dateStr.split('T')[0];
+  };
 
 
   return (
     
     <div className="flex flex-col">
         
-        <section 
-            // 使用 bg-gray-900 (深灰/接近黑) 代替背景图的深色蒙层
-            className="relative bg-gradient-to-b from-blue-700 to-blue-500 flex justify-center items-center py-10 lg:py-16" 
-        >
-            <Container className="text-white relative z-10">
-                <div className="flex flex-col items-center w-full text-center">
+        <div className="bg-slate-50 border-b border-gray-200 py-12">
+            <Container>
+                <div className="flex flex-col lg:flex-row gap-8 items-start">
                     
-                    {/* 左侧：核心介绍文字 */}
-                    <div className="flex flex-col text-white px-2 items-center">
-                        
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-medium leading-tight">
-                            <div className="my-4 text-center">
-                                展商名录 Exhibitor Catalogue
-                            </div>
+                    {/* 左侧文字引导 */}
+                    <div className="lg:w-1/3 space-y-4">
+                        <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">
+                            实时企业 <br/>
+                            <span className="text-blue-600">参展动态</span>
                         </h1>
+                        <p className="text-gray-500 text-lg">
+                            连接全球贸易，实时掌握中国企业出海参展足迹。
+                        </p>
+                        <Link 
+                            to="/companies" 
+                            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                        >
+                            查看全部展商 →
+                        </Link>
+                    </div>
 
-                        <h2 className="font-light text-xl sm:text-2xl leading-relaxed opacity-90 mb-6 max-w-4xl">
-                            展外展展馆数字参展商平台
-                        </h2>
-                        
-                        {/* 核心价值点列表 */}
-                        <div className="my-4 py-0 pl-6 border-l-4 border-blue-300 text-lg leading-relaxed max-w-xl text-left mx-auto">
-                            <p className="my-2">查看参展商信息、产品与服务。</p>
-                            <p className="my-2">查找现场位置、虚拟展位和商业机会。</p>
-                            <p className="my-2">联系我们，充分利用平台资源。</p>
-                        </div>
-                        
-                        {/* 示例CTA按钮 */}
-                         <div className="mt-10">
-                            <Link 
-                                to="/exhibitors" 
-                                className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-lg text-blue-800 bg-white hover:bg-blue-50 transition duration-150"
-                            >
-                                立即搜索参展商
-                            </Link>
+                    {/* 右侧动态列表 */}
+                    <div className="lg:w-2/3 w-full">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 h-[420px] overflow-y-auto custom-scrollbar">
+                            {dynLoading ? (
+                            // 加载占位
+                            <div className="space-y-4 p-4">
+                                {[...Array(6)].map((_, i) => (
+                                <div key={i} className="h-6 bg-gray-50 animate-pulse rounded"></div>
+                                ))}
+                            </div>
+                            ) : (
+                            <div className="divide-y divide-gray-50">
+                                {dynamics.map((item, index) => (
+                                <div 
+                                    key={ index} 
+                                    className="py-4 px-4 flex justify-between items-start hover:bg-gray-50 transition-colors group"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        {/* 1. 小圆点：随文字颜色加深，增加活力感 */}
+                                        <span className="mt-2 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0 group-hover:bg-blue-500 transition-colors" />
+                                        <div className="text-gray-900 text-[13px] md:text-[14px] leading-relaxed font-normal">
+                                            {item.event_title}
+                                        </div>
+                                    </div>
+
+                                    {/* 右侧：处理后的完整日期 */}
+                                    <div className="text-gray-500 text-[11px] md:text-[12px] whitespace-nowrap flex-shrink-0 font-mono ml-4 mt-0.5">
+                                        {formatFullDate(item.date)}
+                                    </div>
+                                    
+                                </div>
+                                ))}
+                            </div>
+                            )}
                         </div>
                     </div>
-                        
                 </div>
             </Container>
-        </section>
+        </div>
 
         <Container className="py-12"> 
             <h2 className="text-2xl font-medium text-gray-800 mb-8 border-b pb-4">

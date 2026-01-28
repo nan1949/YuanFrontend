@@ -5,6 +5,7 @@ import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
 import { updateExhibition, createExhibition } from '../../services/exhibitionService';
 import { getPavilions, getPavilionById } from '../../services/pavilionService';
 import { getOrganizers, getOrganizerById } from '../../services/organizerService';
+import { RegionOption } from '../../services/regionService';
 
 
 const { TextArea } = Input;
@@ -14,14 +15,14 @@ interface ExhibitionEditModalProps {
     editingFair: ExhibitionData | null; // null 表示新增模式
     onCancel: () => void;
     onSuccess: () => void;
-    countries: string[];
-    provinces: string[];
-    cities: string[];
+    countries: RegionOption[];
+    provinces: RegionOption[];
+    cities: RegionOption[];
     industries: string[];
     eventFormats: EventFormat[]; // 增加展会形式数据源
     frequencyTypes: FrequencyType[];
-    onCountryChange: (country: string) => void;
-    onProvinceChange: (country: string, province: string) => void;
+    onCountryChange: (countryId: number) => void;
+    onProvinceChange: (provinceId: number) => void;
 }
 
 const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
@@ -294,11 +295,13 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                 {/* 第三行：地域信息 */}
                 <Row gutter={24}>
                     <Col span={8}>
-                        <Form.Item name="country" label="国家">
+                        <Form.Item name="country" label="国家"  rules={[{ required: true }]}>
                             <Select 
                                 showSearch 
+                                placeholder="选择或手动输入国家"
                                 onChange={onCountryChange}
-                                options={countries.map(c => ({ label: c, value: c }))}
+                                fieldNames={{ label: 'name_zh', value: 'id' }}
+                                options={countries}
                             />
                         </Form.Item>
                     </Col>
@@ -308,21 +311,18 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                                 showSearch
                                 allowClear
                                 placeholder="选择或手动输入省份"
-                                options={provinces.map(p => ({ label: p, value: p }))}
+                                fieldNames={{ label: 'name_zh', value: 'id' }}
+                                options={provinces}
                                 // 核心 1：处理下拉选中的情况
                                 onChange={(val) => {
                                     form.setFieldsValue({ province: val });
-                                    const currentCountry = form.getFieldValue('country');
-                                    onProvinceChange(currentCountry, val); // 触发下级城市联动
+                                    onProvinceChange(val); // 触发下级城市联动
                                 }}
                                 // 核心 2：处理手动输入但未选中的情况
                                 onSearch={(val) => {
                                     form.setFieldsValue({ province: val });
                                 }}
-                                // 解决你说的“不准确”问题：允许搜索框内容作为最终值
-                                filterOption={(input, option) =>
-                                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                                }
+                             
                             />
                         </Form.Item>
                     </Col>
@@ -332,7 +332,7 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                                 showSearch
                                 allowClear
                                 placeholder="选择或手动输入城市"
-                                options={cities.map(c => ({ label: c, value: c }))}
+                                options={cities}
                                 // 同样的操作：支持手动搜索输入的值同步到 Form
                                 onSearch={(val) => form.setFieldsValue({ city: val || null })} // 输入为空时设为 null
                                 onChange={(val) => form.setFieldsValue({ city: val || null })}
@@ -343,9 +343,7 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                                         form.setFieldsValue({ city: null });
                                     }
                                 }}
-                                filterOption={(input, option) =>
-                                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                                }
+                            
                             />
                         </Form.Item>
                     </Col>

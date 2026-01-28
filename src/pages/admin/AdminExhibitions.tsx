@@ -45,9 +45,9 @@ const AdminExhibitions: React.FC = () => {
 
     const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
 
-    const [countries, setCountries] = useState<string[]>([]);
-    const [provinces, setProvinces] = useState<string[]>([]);
-    const [cities, setCities] = useState<string[]>([]);
+    const [countries, setCountries] = useState<regionService.RegionOption[]>([]);
+    const [provinces, setProvinces] = useState<regionService.RegionOption[]>([]);
+    const [cities, setCities] = useState<regionService.RegionOption[]>([]);
 
     const [allIndustryFields, setAllIndustryFields] = useState<string[]>([]);
 
@@ -138,19 +138,20 @@ const AdminExhibitions: React.FC = () => {
     };
 
     // 处理国家切换
-    const handleCountryChange = async (country: string) => {
-
-        if (country) {
-            const data = await regionService.getProvinces(country);
+    const handleCountryChange = async (countryId: number) => {
+        setProvinces([]); // 清空旧数据
+        setCities([]);
+        if (countryId) {
+            const data = await regionService.getSubRegions(countryId);
             setProvinces(data);
         }
     };
 
     // 处理省份切换
-    const handleProvinceChange = async (country: string, province: string) => {
-    
-        if (country && province) {
-            const data = await regionService.getCities(country, province);
+    const handleProvinceChange = async (provinceId: number) => {
+        setCities([]);
+        if (provinceId) {
+            const data = await regionService.getSubRegions(provinceId);
             setCities(data);
         }
     };
@@ -158,11 +159,11 @@ const AdminExhibitions: React.FC = () => {
     
     const handleEdit = async (record: ExhibitionData) => {
         setEditingFair(record);
-        if (record.country) {
-            const p = await regionService.getProvinces(record.country);
+        if (record.country_id) {
+            const p = await regionService.getSubRegions(record.country_id);
             setProvinces(p);
-            if (record.province) {
-                const c = await regionService.getCities(record.country, record.province);
+            if (record.province_id) {
+                const c = await regionService.getSubRegions(record.province_id);
                 setCities(c);
             }
         }
@@ -235,8 +236,16 @@ const AdminExhibitions: React.FC = () => {
         { 
             title: '国家', 
             dataIndex: 'country', 
-            width: 100,
+            width: 120,
             sorter: true, // 开启排序 UI
+            render: (text: string, record: any) => (
+                <Space>
+                    {record.iso_code && (
+                        <span className={`fi fi-${record.iso_code.toLowerCase()}`} />
+                    )}
+                    {text}
+                </Space>
+            )
         },
         { 
             title: '官网', 

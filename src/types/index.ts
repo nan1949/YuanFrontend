@@ -30,6 +30,9 @@ export interface ExhibitionData {
   event_format:string;
   industry_field: string[];
   exhibition_items: string;
+  country_id: number,
+  province_id: number,
+  city_id: number,
   country: string;
   province: string; 
   city: string;

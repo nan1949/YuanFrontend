@@ -22,6 +22,7 @@ import AdminIndustries from './pages/admin/AdminIndustries';
 import AdminOrganizers from './pages/admin/AdminOrganizers';
 import AdminExhibitors from './pages/admin/AdminExhibitors';
 import AdminExhibitionDetailView from './pages/admin/AdminExhibitionDetailView'
+import 'flag-icons/css/flag-icons.min.css';
 
 
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Input, Button, Space, AutoComplete, Divider, Select } from 'antd';
-import { PlusOutlined, MergeCellsOutlined, ApartmentOutlined } from '@ant-design/icons';
+import { PlusOutlined, MergeCellsOutlined, ApartmentOutlined, SearchOutlined } from '@ant-design/icons';
 import { Organizer } from '../../types';
 import { getOrganizers } from '../../services/organizerService';
 
@@ -42,60 +42,57 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
     )
   }));
 
-  const executeSearch = (name?: string) => {
-    // 确保使用传入的 name 或当前 state 中的 searchText
-    const finalSearchName = name ?? searchText;
-
-    // 统一的 UI 处理：关闭下拉框并失去焦点
-    setDropdownOpen(false);
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-
-    // 执行最终的搜索回调
-    onSearch({
-      search_name: finalSearchName,
-      organizer_id: selectedOrgId,
-      date_status: dateStatus
+  const handleExecuteSearch = () => {
+    onSearch({ 
+      search_name: searchText, 
+      organizer_id: selectedOrgId, 
+      date_status: dateStatus 
     });
   };
 
-
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-3">
-  
-        <AutoComplete
-          open={dropdownOpen}
-          onDropdownVisibleChange={(visible) => {
-              // 只有在非搜索点击的情况下才允许组件自动改变状态
-              setDropdownOpen(visible);
-          }}
-          onBlur={() => setDropdownOpen(false)}
-          onFocus={() => {
-             // 只有当有历史记录时，获取焦点才打开
-             if (history.length > 0) setDropdownOpen(true);
-          }}
-          classNames={{ popup: { root: 'history-dropdown' } }}
-          style={{ width: 320 }}
-          options={options}
-          value={searchText}
-          onSelect={(val) => {
-            setSearchText(val);
-            executeSearch(val); // 选择历史记录后直接触发搜索并关闭
-          }}
-          onChange={(val) => {
-            setSearchText(val);
-            // 如果用户清空了输入，也可以决定是否显示历史
-            setDropdownOpen(val.length >= 0 && history.length > 0);
-          }}
-        >
-          <Input.Search
-            placeholder="搜索展会名称..."
-            onSearch={() => executeSearch()}
-            enterButton
-            allowClear
-          />
-        </AutoComplete>
+    <div className="flex items-center gap-4 mb-4 bg-white p-4 rounded shadow-sm">
+        <Space.Compact style={{ width: 400 }}>
+            <AutoComplete
+              style={{ width: 320 }}
+              options={options}
+              value={searchText}
+              open={dropdownOpen}
+              onChange={(val) => {
+                setSearchText(val);
+              }}
+              defaultOpen={false}
+              defaultActiveFirstOption={false}
+              onDropdownVisibleChange={(visible) => {
+                  setDropdownOpen(visible);
+              }}
+              onBlur={() => setDropdownOpen(false)}
+              onFocus={() => {
+                if (history.length > 0) setDropdownOpen(true);
+              }}
+              classNames={{ popup: { root: 'history-dropdown' } }}
+              
+              onSelect={(val) => {
+                setSearchText(val);
+                onSearch({ search_name: val, organizer_id: selectedOrgId, date_status: dateStatus });
+              }}
+             
+            >
+              <Input
+                placeholder="搜索展会名称..."
+                onPressEnter={handleExecuteSearch}
+                allowClear
+              />
+            </AutoComplete>
+            <Button 
+                type="primary" 
+                icon={<SearchOutlined />} 
+                onClick={handleExecuteSearch}
+            >
+                搜索
+            </Button>
+        </Space.Compact>
+        
 
         <Select
           showSearch

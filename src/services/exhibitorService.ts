@@ -95,3 +95,21 @@ export const uploadExhibitorsTxt = async (fairId: number, file: File) => {
     });
     return response.data;
 };
+
+
+export interface RecentDynamic {
+  event_title: string;
+  date: string; // 后端返回的原始日期字符串
+}
+
+export const getRecentDynamics = async (limit: number = 10): Promise<RecentDynamic[]> => {
+  try {
+    const response = await api.get<RecentDynamic[]>('/exhibitors/recent-dynamics', {
+      params: { limit }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("获取动态失败:", error);
+    return [];
+  }
+};
