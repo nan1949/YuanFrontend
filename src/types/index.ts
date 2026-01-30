@@ -83,6 +83,9 @@ export interface Pavilion {
   pavilion_name_trans: string | null;
   intro: string | null;
   website: string | null;
+  country_id: number,
+  province_id: number,
+  city_id: number,
   country: string;
   province: string; 
   city: string;

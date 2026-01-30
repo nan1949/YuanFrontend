@@ -123,7 +123,7 @@ const AdminExhibitors: React.FC<AdminExhibitorsProps> = ({ initialFairId, isSubV
     ];
 
     return (
-        <div className={isSubView ? "" : "p-4"}>
+        <div >
             <Card className="shadow-sm" bordered={!isSubView}>
                 {/* 搜索与筛选区域 */}
                 <div className="mb-4 flex items-center flex-wrap gap-3">

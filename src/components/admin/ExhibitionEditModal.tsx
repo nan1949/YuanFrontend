@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, message, Spin, Tag, Space } from 'antd';
+import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, message, Spin, Tag, Space, Image, Tooltip, Button } from 'antd';
 import dayjs from 'dayjs';
+import { SyncOutlined } from '@ant-design/icons';
 import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
-import { updateExhibition, createExhibition } from '../../services/exhibitionService';
+import { updateExhibition, createExhibition, localizeExhibitionImage } from '../../services/exhibitionService';
 import { getPavilions, getPavilionById } from '../../services/pavilionService';
 import { getOrganizers, getOrganizerById } from '../../services/organizerService';
 import { RegionOption } from '../../services/regionService';
@@ -25,6 +26,7 @@ interface ExhibitionEditModalProps {
     onProvinceChange: (provinceId: number) => void;
 }
 
+
 const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
     open, editingFair, onCancel, onSuccess, countries, provinces, cities, industries, eventFormats,
     frequencyTypes,
@@ -39,6 +41,10 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
 
     const [organizerOptions, setOrganizerOptions] = useState<{ label: string; value: number }[]>([]);
     const [fetchingOrganizers, setFetchingOrganizers] = useState(false);
+
+    // 1. 获取表单值的实时监听（用于预览）
+    const logoUrl = Form.useWatch('logo_url', form);
+    const bannerUrl = Form.useWatch('banner_url', form);
 
     // 监听打开状态，填充或重置表单
     useEffect(() => {
@@ -63,51 +69,18 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
         }
     }, [open, editingFair, form]);
 
+   
     useEffect(() => {
-        const fetchPavilionInfo = async () => {
-            // 只有当打开 Modal 且有 pavilion_id 时才触发
-            if (open && editingFair?.pavilion_id) {
-                try {
-                    // 🚀 调用获取单个展馆详情的接口
-                    // 注意：如果你的 service 里还没有这个方法，需要补充（见下方第2步）
-                    const pavilion = await getPavilionById(editingFair.pavilion_id);
-                    
-                    if (pavilion) {
-                        setPavilionOptions([{
-                            label: pavilion.pavilion_name_trans 
-                                ? `${pavilion.pavilion_name} (${pavilion.pavilion_name_trans})` 
-                                : pavilion.pavilion_name,
-                            value: pavilion.id
-                        }]);
-                    }
-                } catch (error) {
-                    console.error("回显展馆信息失败:", error);
-                    // 容错处理：如果查不到名称，至少把 ID 显示出来
-                    setPavilionOptions([{
-                        label: `展馆 ID: ${editingFair.pavilion_id}`,
-                        value: editingFair.pavilion_id
-                    }]);
-                }
-            } else if (open && !editingFair?.pavilion_id) {
-                // 如果是新增或没有绑定展馆，清空选项
-                setPavilionOptions([]);
-            }
-        };
-
-        fetchPavilionInfo();
-    }, [open, editingFair?.pavilion_id]); // 监听 ID 的变化
-
-    useEffect(() => {
-        // 只要有任何地区 ID 变动，就预加载该地区下的前 50 个场馆
-        const cid = form.getFieldValue('country_id');
-        if (cid || open) {
+        // 只要 Modal 是打开状态，且地区 ID 发生任何变化（包括清空），就重新获取场馆
+        if (open) {
             handlePavilionSearch(''); 
         }
     }, [
-        form.getFieldValue('country_id'), 
-        form.getFieldValue('province_id'), 
-        form.getFieldValue('city_id'),
-        open
+        open,
+        // 使用 Form.useWatch 监听（推荐）或直接监听 form 字段值
+        form.getFieldValue('country_id_trigger'), 
+        form.getFieldValue('province_id_trigger'), 
+        form.getFieldValue('city_id_trigger')
     ]);
 
     useEffect(() => {
@@ -173,12 +146,33 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                 province_id: province_id || undefined,
                 city_id: city_id || undefined
             });
-            const options = res.items.map(p => ({
+            let options = res.items.map(p => ({
                 label: p.pavilion_name_trans 
                     ? `${p.pavilion_name} (${p.pavilion_name_trans})` 
                     : p.pavilion_name,
                 value: p.id
             }));
+
+            // 2. 【核心修复】如果是初始化加载（val为空）且处于编辑模式
+            if (!val && editingFair?.pavilion_id) {
+                const isIncluded = options.some(opt => opt.value === editingFair.pavilion_id);
+                
+                // 如果搜索结果里没包含当前已选的场馆（可能是因为地区不匹配或不在前50名）
+                if (!isIncluded) {
+                    const currentPavilion = await getPavilionById(editingFair.pavilion_id);
+                    if (currentPavilion) {
+                        const currentOption = {
+                            label: currentPavilion.pavilion_name_trans 
+                                ? `${currentPavilion.pavilion_name} (${currentPavilion.pavilion_name_trans})` 
+                                : currentPavilion.pavilion_name,
+                            value: currentPavilion.id
+                        };
+                        // 将当前场馆强行插入到选项列表首位
+                        options = [currentOption, ...options];
+                    }
+                }
+            }
+
             setPavilionOptions(options);
         } catch (error) {
             message.error('搜索展馆失败');
@@ -187,41 +181,44 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
         }
     };
 
-    const handleCountrySelect = (value: number, option: any) => {
+    const handleCountrySelect = (value: number | undefined, option: any) => {
         form.setFieldsValue({
-            country: option.name_zh, // 提交名称
-            country_id: value,       // 提交 ID
-            iso_code: option.iso_code, // 提交 iso_code
+            country: option?.name_zh || null,
+            country_id: value || null,
+            iso_code: option?.iso_code || null,
             // 重置下级
             province: null,
             province_id: null,
             city: null,
             city_id: null,
+            province_id_trigger: null, // 也要清理 trigger 字段
+            city_id_trigger: null,
             pavilion_id: null // 国家换了，场馆通常也要重选
         });
-        onCountryChange(value);
-        setPavilionOptions([]); // 清空旧的场馆选项
+        onCountryChange(value || 0);
+        handlePavilionSearch(''); // 立即触发一次搜索刷新
     };
 
-    const handleProvinceSelect = (value: number, option: any) => {
+    const handleProvinceSelect = (value: number | undefined, option: any) => {
         form.setFieldsValue({
-            province: option.name_zh,
-            province_id: value,
+            province: option?.name_zh || null,
+            province_id: value || null,
             city: null,
             city_id: null,
-            pavilion_id: null // 国家换了，场馆通常也要重选
+            city_id_trigger: null,
+            pavilion_id: null
         });
-        onProvinceChange(value);
-        setPavilionOptions([]); // 清空旧的场馆选项
+        onProvinceChange(value || 0);
+        handlePavilionSearch('');
     };
 
-    const handleCitySelect = (value: number, option: any) => {
+    const handleCitySelect = (value: number | undefined, option: any) => {
         form.setFieldsValue({
-            city: option.name_zh,
-            city_id: value,
-            pavilion_id: null // 国家换了，场馆通常也要重选
+            city: option?.name_zh || null,
+            city_id: value || null,
+            pavilion_id: null
         });
-        setPavilionOptions([]); // 清空旧的场馆选项
+        handlePavilionSearch('');
     };
 
     const handleSubmit = async () => {
@@ -253,6 +250,37 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
         }
     };
 
+    const handleLocalizeImage = async (targetType: 'logo_url' | 'banner_url') => {
+        // 校验：必须是编辑模式
+        if (!editingFair?.id) {
+            return message.warning('请先创建并保存展会基本信息后，再进行图片转化');
+        }
+
+        const currentExternalUrl = form.getFieldValue(targetType);
+        
+        // 简单校验 URL 格式
+        if (!currentExternalUrl || !currentExternalUrl.startsWith('http')) {
+            return message.error('请输入有效的外部图片 HTTP 链接');
+        }
+
+        try {
+            setLoading(true);
+            const updatedFair = await localizeExhibitionImage(editingFair.id, currentExternalUrl, targetType);
+            
+            const newUrl = updatedFair[targetType]; 
+        
+            form.setFieldsValue({
+                [targetType]: newUrl 
+            });
+            message.success(`${targetType === 'logo_url' ? 'Logo' : 'Banner'} 同步成功`);
+        } catch (error: any) {
+            console.error("同步失败:", error);
+            message.error(error.response?.data?.detail || '同步失败，请检查链接有效性');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <Modal
             title={editingFair ? "编辑展会" : "新增展会"}
@@ -268,21 +296,64 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                 layout="vertical" 
                 className="mt-4"
             >
+                <div style={{ 
+                    marginBottom: 20, 
+                    width: '100%', 
+                    height: 180, 
+                    backgroundColor: '#f0f2f5', 
+                    borderRadius: 8, 
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid #d9d9d9'
+                }}>
+                    {bannerUrl ? (
+                        <Image 
+                            src={bannerUrl} 
+                            height={180} 
+                            width="100%" 
+                            style={{ objectFit: 'cover' }} 
+                            fallback="https://placehold.co/800x180?text=No+Banner"
+                        />
+                    ) : <span style={{ color: '#999' }}>暂无 Banner</span>}
+                </div>
                 {/* 第一行：名称相关 */}
                 <Row gutter={24}>
-                    <Col span={10}>
-                        <Form.Item name="fair_name" label="展会原名" rules={[{ required: true }]}><Input /></Form.Item>
+                    <Col span={4}>
+                        <div style={{ 
+                            width: 80, 
+                            height: 80, 
+                            border: '1px solid #d9d9d9', 
+                            borderRadius: 4, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            backgroundColor: '#fff'
+                        }}>
+                            {logoUrl ? (
+                                <Image src={logoUrl} width={70} height={70} style={{ objectFit: 'contain' }} />
+                            ) : <span style={{ fontSize: 12, color: '#ccc' }}>Logo</span>}
+                        </div>
                     </Col>
-                    <Col span={10}>
-                        <Form.Item name="fair_name_trans" label="中文译名"><Input /></Form.Item>
+                    <Col span={20}>
+                            <Row gutter={16}>
+                                <Col span={10}>
+                                    <Form.Item name="fair_name" label="展会原名" rules={[{ required: true }]}><Input /></Form.Item>
+                                </Col>
+                                <Col span={10}>
+                                    <Form.Item name="fair_name_trans" label="中文译名"><Input /></Form.Item>
+                                </Col>
+                            </Row>
                     </Col>
+                    
+                </Row>
+                <Row gutter={24}>
                     <Col span={4}>
                         <Form.Item name="fair_series_id" label="系列ID"><InputNumber className="w-full" /></Form.Item>
                     </Col>
                 </Row>
               
-                
-       
 
                 {/* 第二行：分类与系列 */}
                 <Row gutter={24}>
@@ -537,10 +608,46 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                 </Form.Item>
 
            
-                <Form.Item name="logo_url" label="Logo 图片链接"><Input /></Form.Item>
+                <Form.Item 
+                    name="logo_url" 
+                    label="Logo 图片链接"
+                    tooltip="输入外部链接后点击右侧图标同步到本地存储"
+                >
+                    <Input 
+                        placeholder="http://..." 
+                        suffix={
+                            <Tooltip title="同步到本地">
+                                <Button 
+                                    type="text" 
+                                    size="small" 
+                                    icon={<SyncOutlined spin={loading} />} 
+                                    onClick={() => handleLocalizeImage('logo_url')}
+                                />
+                            </Tooltip>
+                        }
+                    />
+                </Form.Item>
         
     
-                <Form.Item name="banner_url" label="Banner 图片链接"><Input /></Form.Item>
+                <Form.Item 
+                    name="banner_url" 
+                    label="Banner 图片链接"
+                    tooltip="输入外部链接后点击右侧图标同步到本地存储"
+                >
+                    <Input 
+                        placeholder="http://..." 
+                        suffix={
+                            <Tooltip title="同步到本地">
+                                <Button 
+                                    type="text" 
+                                    size="small" 
+                                    icon={<SyncOutlined spin={loading} />} 
+                                    onClick={() => handleLocalizeImage('banner_url')}
+                                />
+                            </Tooltip>
+                        }
+                    />
+                </Form.Item>
            
             </Form>
         </Modal>

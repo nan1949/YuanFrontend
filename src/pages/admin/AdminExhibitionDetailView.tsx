@@ -113,91 +113,91 @@ const ExhibitionDetailView: React.FC = () => {
     if (!exhibition) return <div>未找到展会信息</div>;
 
     return (
-        <div className="p-4">
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                {/* 顶部操作栏 */}
-                <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>返回列表</Button>
 
-                {/* 展会核心信息卡片 */}
-                <Card>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
-                            <Title level={3}>{exhibition.fair_name}</Title>
-                            <Text type="secondary">{exhibition.fair_name_trans}</Text>
-                        </div>
-                        <Tag color="gold" style={{ fontSize: '14px', padding: '4px 12px' }}>
-                            ID: {exhibition.id}
-                        </Tag>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            {/* 顶部操作栏 */}
+            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>返回列表</Button>
+
+            {/* 展会核心信息卡片 */}
+            <Card>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                        <Title level={3}>{exhibition.fair_name}</Title>
+                        <Text type="secondary">{exhibition.fair_name_trans}</Text>
                     </div>
-                    
-                    <Divider />
-                    
-                    <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1 }}>
-                        <Descriptions.Item label="国家/城市">
-                            <Tag color="blue">{exhibition.country}</Tag> {exhibition.city}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="展会日期">
-                            <CalendarOutlined /> {dayjs(exhibition.fair_start_date).format('YYYY-MM-DD')} 
-                            {exhibition.fair_end_date && ` 至 ${dayjs(exhibition.fair_end_date).format('YYYY-MM-DD')}`}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="官方网站">
-                            {exhibition.website ? (
-                                <a href={exhibition.website} target="_blank" rel="noreferrer">
-                                    <GlobalOutlined /> 访问官网
-                                </a>
-                            ) : '-'}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="行业领域">
-                            {exhibition.industry_field?.map(tag => <Tag key={tag}>{tag}</Tag>)}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="展商数量">
-                            <Typography.Text strong type="danger">{exhibition.exhibitor_count || 0}</Typography.Text> 位已入驻
-                        </Descriptions.Item>
-                    </Descriptions>
-                </Card>
-
-                {/* 下钻部分：该展会的展商列表 */}
-                <Card 
-                    title="参展商名录"
-                    extra={
-                        <Space>
-                            <Upload 
-                                accept=".xlsx, .xls"
-                                showUploadList={false}
-                                beforeUpload={handleUpload}
-                            >
-                                <Button 
-                                    icon={<UploadOutlined />} 
-                                    loading={uploading}
-                                >
-                                    批量导入展商excel
-                                </Button>
-                            </Upload>
-
-                            <Upload
-                                accept=".txt,.json,.html"
-                                beforeUpload={(file) => {
-                                    handleTxtUpload(file);
-                                    return false;
-                                }}
-                                showUploadList={false}
-                            >
-                                <Button icon={<FileTextOutlined />} loading={uploading}>
-                                    上传源码(TXT/JSON)
-                                </Button>
-                            </Upload>
-                        </Space>
-                    }
+                    <Tag color="gold" style={{ fontSize: '14px', padding: '4px 12px' }}>
+                        ID: {exhibition.id}
+                    </Tag>
+                </div>
                 
-                >
-                    {/* 直接复用 AdminExhibitors 
-                        注意：需要修改 AdminExhibitors 使其支持传入 fair_id 作为初始筛选条件
-                    */}
-                    
-                    <Tabs defaultActiveKey="exhibitors" items={tabItems} />
-                </Card>
-            </Space>
-        </div>
+                <Divider />
+                
+                <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1 }}>
+                    <Descriptions.Item label="国家/城市">
+                        <Tag color="blue">{exhibition.country}</Tag> {exhibition.city}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="展会日期">
+                        <CalendarOutlined /> {dayjs(exhibition.fair_start_date).format('YYYY-MM-DD')} 
+                        {exhibition.fair_end_date && ` 至 ${dayjs(exhibition.fair_end_date).format('YYYY-MM-DD')}`}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="官方网站">
+                        {exhibition.website ? (
+                            <a href={exhibition.website} target="_blank" rel="noreferrer">
+                                <GlobalOutlined /> 访问官网
+                            </a>
+                        ) : '-'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="行业领域">
+                        {exhibition.industry_field?.map(tag => <Tag key={tag}>{tag}</Tag>)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="展商数量">
+                        <Typography.Text strong type="danger">{exhibition.exhibitor_count || 0}</Typography.Text> 位已入驻
+                    </Descriptions.Item>
+                </Descriptions>
+            </Card>
+
+            {/* 下钻部分：该展会的展商列表 */}
+            <Card 
+                title="参展商名录"
+                extra={
+                    <Space>
+                        <Upload 
+                            accept=".xlsx, .xls"
+                            showUploadList={false}
+                            beforeUpload={handleUpload}
+                        >
+                            <Button 
+                                icon={<UploadOutlined />} 
+                                loading={uploading}
+                            >
+                                批量导入展商excel
+                            </Button>
+                        </Upload>
+
+                        <Upload
+                            accept=".txt,.json,.html"
+                            beforeUpload={(file) => {
+                                handleTxtUpload(file);
+                                return false;
+                            }}
+                            showUploadList={false}
+                        >
+                            <Button icon={<FileTextOutlined />} loading={uploading}>
+                                上传源码(TXT/JSON)
+                            </Button>
+                        </Upload>
+                    </Space>
+                }
+            
+            >
+                {/* 直接复用 AdminExhibitors 
+                    注意：需要修改 AdminExhibitors 使其支持传入 fair_id 作为初始筛选条件
+                */}
+                
+                <Tabs defaultActiveKey="exhibitors" items={tabItems} />
+            </Card>
+        </Space>
+
     );
 };
 

@@ -55,6 +55,19 @@ export const updateExhibition = async (id: number, data: Partial<ExhibitionData>
 };
 
 
+export const localizeExhibitionImage = async (
+    id: number, 
+    externalUrl: string, 
+    targetType: 'logo_url' | 'banner_url'
+): Promise<ExhibitionData> => {
+    const response = await api.post(`/exhibitions/${id}/localize-image`, {
+        external_url: externalUrl,
+        target_type: targetType
+    });
+    return response.data;
+};
+
+
 export const deleteExhibition = async (id: number): Promise<void> => {
     await api.delete(`/exhibitions/${id}`);
 };

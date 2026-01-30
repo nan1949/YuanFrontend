@@ -1,18 +1,19 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, Row, Col, message, InputNumber, Select } from 'antd';
+import { Modal, Form, Input, Row, Col, message, InputNumber, Select, Space } from 'antd';
 import { createPavilion, updatePavilion } from '../../services/pavilionService';
 import { Pavilion } from '../../types';
+import { RegionOption } from '../../services/regionService';
 
 interface PavilionEditModalProps {
     open: boolean;
     editingPavilion: Pavilion | null; // 为 null 时表示新增，有值时表示编辑
     onCancel: () => void;
     onSuccess: () => void; // 操作成功后的回调，用于刷新列表
-    countries: string[];
-    provinces: string[];
-    cities: string[];
-    onCountryChange: (country: string) => void;
-    onProvinceChange: (country: string, province: string) => void;
+    countries: RegionOption[];
+    provinces: RegionOption[];
+    cities: RegionOption[];
+    onCountryChange: (countryId: number) => void;
+    onProvinceChange: (provinceId: number) => void;
 }
 
 const PavilionEditModal: React.FC<PavilionEditModalProps> = ({
@@ -32,12 +33,55 @@ const PavilionEditModal: React.FC<PavilionEditModalProps> = ({
   useEffect(() => {
     if (open) {
       if (editingPavilion) {
-        form.setFieldsValue(editingPavilion);
+        form.setFieldsValue({
+          ...editingPavilion, 
+
+          country_id_trigger: editingPavilion.country_id,
+          province_id_trigger: editingPavilion.province_id,
+          city_id_trigger: editingPavilion.city_id,
+        });
       } else {
         form.resetFields();
       }
     }
   }, [open, editingPavilion, form]);
+
+      const handleCountrySelect = (value: number | undefined, option: any) => {
+        form.setFieldsValue({
+            country: option?.name_zh || null,
+            country_id: value || null,
+            iso_code: option?.iso_code || null,
+            // 重置下级
+            province: null,
+            province_id: null,
+            city: null,
+            city_id: null,
+            province_id_trigger: null, // 也要清理 trigger 字段
+            city_id_trigger: null,
+            pavilion_id: null // 国家换了，场馆通常也要重选
+        });
+        onCountryChange(value || 0);
+    };
+
+    const handleProvinceSelect = (value: number | undefined, option: any) => {
+        form.setFieldsValue({
+            province: option?.name_zh || null,
+            province_id: value || null,
+            city: null,
+            city_id: null,
+            city_id_trigger: null,
+            pavilion_id: null
+        });
+        onProvinceChange(value || 0);
+    };
+
+  const handleCitySelect = (value: number | undefined, option: any) => {
+        form.setFieldsValue({
+            city: option?.name_zh || null,
+            city_id: value || null,
+            pavilion_id: null
+        });
+    };
 
   const handleOk = async () => {
     try {
@@ -74,8 +118,8 @@ const PavilionEditModal: React.FC<PavilionEditModalProps> = ({
           <Col span={12}>
             <Form.Item
               name="pavilion_name"
-              label="展馆名称 (中文)"
-              rules={[{ required: true, message: '请输入展馆中文名称' }]}
+              label="展馆名称 (英文)"
+              rules={[{ message: '请输入展馆中文名称' }]}
             >
               <Input placeholder="例如：国家会展中心（上海）" />
             </Form.Item>
@@ -83,70 +127,71 @@ const PavilionEditModal: React.FC<PavilionEditModalProps> = ({
           <Col span={12}>
             <Form.Item
               name="pavilion_name_trans"
-              label="展馆名称 (英文)"
+              label="展馆名称 (中文)"
             >
               <Input placeholder="例如：NECC (Shanghai)" />
             </Form.Item>
           </Col>
         </Row>
 
+        <Form.Item name="country_id" hidden><Input /></Form.Item>
+        <Form.Item name="province_id" hidden><Input /></Form.Item>
+        <Form.Item name="city_id" hidden><Input /></Form.Item>
+        <Form.Item name="iso_code" hidden><Input /></Form.Item>
         <Row gutter={16}>
           <Col span={8}>
-                        <Form.Item name="country" label="国家">
-                            <Select 
-                                showSearch 
-                                onChange={onCountryChange}
-                                options={countries.map(c => ({ label: c, value: c }))}
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                        <Form.Item name="province" label="省份">
-                            <Select 
-                                showSearch
-                                allowClear
-                                placeholder="选择或手动输入省份"
-                                options={provinces.map(p => ({ label: p, value: p }))}
-                                // 核心 1：处理下拉选中的情况
-                                onChange={(val) => {
-                                    form.setFieldsValue({ province: val });
-                                    const currentCountry = form.getFieldValue('country');
-                                    onProvinceChange(currentCountry, val); // 触发下级城市联动
-                                }}
-                                // 核心 2：处理手动输入但未选中的情况
-                                onSearch={(val) => {
-                                    form.setFieldsValue({ province: val });
-                                }}
-                                // 解决你说的“不准确”问题：允许搜索框内容作为最终值
-                                filterOption={(input, option) =>
-                                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                                }
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                        <Form.Item name="city" label="城市">
-                            <Select 
-                                showSearch
-                                allowClear
-                                placeholder="选择或手动输入城市"
-                                options={cities.map(c => ({ label: c, value: c }))}
-                                // 同样的操作：支持手动搜索输入的值同步到 Form
-                                onSearch={(val) => form.setFieldsValue({ city: val || null })} // 输入为空时设为 null
-                                onChange={(val) => form.setFieldsValue({ city: val || null })}
-                                onBlur={(e) => {
-                                    const val = (e.target as HTMLInputElement).value;
-                                    // 如果输入框彻底空了，同步为 null
-                                    if (!val) {
-                                        form.setFieldsValue({ city: null });
-                                    }
-                                }}
-                                filterOption={(input, option) =>
-                                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                                }
-                            />
-                        </Form.Item>
-                    </Col>
+              <Form.Item name="country_id_trigger" label="国家" rules={[{ required: true }]}>
+                  <Select 
+                      showSearch 
+                      placeholder="选择或手动输入国家"
+                      optionFilterProp="name_zh"
+                      onChange={handleCountrySelect}
+                      options={countries.map(c => ({
+                          ...c,
+                          label: (
+                              <Space>
+                                  {c.iso_code && <span className={`fi fi-${c.iso_code.toLowerCase()}`} />}
+                                  {c.name_zh}
+                              </Space>
+                          ),
+                          value: c.id,
+                          name_zh: c.name_zh, // 存入 option 方便 handle 提取
+                          iso_code: c.iso_code
+                      }))}
+                  />
+              </Form.Item>
+              <Form.Item name="country" hidden><Input /></Form.Item>
+          </Col>
+          <Col span={8}>
+              <Form.Item name="province_id_trigger" label="省份">
+                  <Select 
+                      showSearch
+                      allowClear
+                      placeholder="选择或手动输入省份"
+                      optionFilterProp="name_zh"
+                      options={provinces.map(p => ({ label: p.name_zh, value: p.id, name_zh: p.name_zh }))}
+                      onChange={handleProvinceSelect}
+                  />
+              </Form.Item>
+              <Form.Item name="province" hidden><Input /></Form.Item>
+          </Col>
+          <Col span={8}>
+              <Form.Item name="city_id_trigger" label="城市">
+                  <Select 
+                      showSearch
+                      allowClear
+                      placeholder="选择或手动输入城市"
+                      optionFilterProp="name_zh"
+                      onChange={handleCitySelect}
+                      options={cities.map(c => ({
+                          label: c.name_zh,
+                          value: c.id,
+                          name_zh: c.name_zh
+                      }))}
+                  />
+              </Form.Item>
+              <Form.Item name="city" hidden><Input /></Form.Item>
+          </Col>
         </Row>
         <Row>
             <Col span={16}>

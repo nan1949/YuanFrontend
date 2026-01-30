@@ -296,82 +296,81 @@ const AdminExhibitions: React.FC = () => {
     ];
 
     return  (
-        <div className="p-4">
-            <Card bordered={false} className="shadow-sm">
-                <ExhibitionHeader
-                    searchText={filters.search_name}
-                    setSearchText={(val) => setFilters(f => ({ ...f, search_name: val }))}
-                    onSearch={handleSearch}
-                    history={history}
-                    selectedCount={selectedIds.length}
-                    onAdd={showCreateModal}
-                    onMerge={handleMergeButtonClick}
-                    onSeries={handleOpenSeriesModal}
-                />
-        
-                <Table 
-                    loading={loading}
-                    rowSelection={{ 
-                        onChange: (keys) => setSelectedIds(keys as number[]) 
-                    }}
-                    dataSource={data} 
-                    columns={columns} 
-                    rowKey="id" 
-                    scroll={{ x: 1200 }}
-                    onChange={handleTableChange}
-                    pagination={{
-                        total: total,
-                        current: pagination.current,
-                        pageSize: pagination.pageSize,
-                        onChange: (page) => setPagination({ ...pagination, current: page }),
-                        showSizeChanger: false,
-                        showTotal: (total) => `共 ${total} 条记录`
-                    }}
-                />
+        <Card bordered={false} className="shadow-sm">
+            <ExhibitionHeader
+                searchText={filters.search_name}
+                setSearchText={(val) => setFilters(f => ({ ...f, search_name: val }))}
+                onSearch={handleSearch}
+                history={history}
+                selectedCount={selectedIds.length}
+                onAdd={showCreateModal}
+                onMerge={handleMergeButtonClick}
+                onSeries={handleOpenSeriesModal}
+            />
+    
+            <Table 
+                loading={loading}
+                rowSelection={{ 
+                    onChange: (keys) => setSelectedIds(keys as number[]) 
+                }}
+                dataSource={data} 
+                columns={columns} 
+                rowKey="id" 
+                scroll={{ x: 1200 }}
+                onChange={handleTableChange}
+                pagination={{
+                    total: total,
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    onChange: (page) => setPagination({ ...pagination, current: page }),
+                    showSizeChanger: false,
+                    showTotal: (total) => `共 ${total} 条记录`
+                }}
+            />
 
-                <ExhibitionMergeModal 
-                    open={isMergeModalOpen}
-                    selectedExhibitions={data.filter(f => selectedIds.includes(f.id))}
-                    onCancel={() => setIsMergeModalOpen(false)}
-                    onSuccess={() => {
-                        setIsMergeModalOpen(false);
-                        setSelectedIds([]);
-                        fetchData();
-                    }}
-                />
+            <ExhibitionMergeModal 
+                open={isMergeModalOpen}
+                selectedExhibitions={data.filter(f => selectedIds.includes(f.id))}
+                onCancel={() => setIsMergeModalOpen(false)}
+                onSuccess={() => {
+                    setIsMergeModalOpen(false);
+                    setSelectedIds([]);
+                    fetchData();
+                }}
+            />
 
-                {/* 编辑弹窗 */}
-                <ExhibitionEditModal 
-                    open={isEditModalOpen}
-                    editingFair={editingFair}
-                    onCancel={() => setIsEditModalOpen(false)}
-                    onSuccess={() => {
-                        setIsEditModalOpen(false); // 1. 关闭 Modal
-                        fetchData(filters, pagination.current); // 2. 刷新列表数据
-                    }}
-                    countries={countries}
-                    provinces={provinces}
-                    cities={cities}
-                    industries={allIndustryFields}
-                    eventFormats={eventFormats} // 传递数据源
-                    frequencyTypes={frequencyTypes} // 🚀 传下去
-                    onCountryChange={handleCountryChange}
-                    onProvinceChange={handleProvinceChange}
-                />
+            {/* 编辑弹窗 */}
+            <ExhibitionEditModal 
+                open={isEditModalOpen}
+                editingFair={editingFair}
+                onCancel={() => setIsEditModalOpen(false)}
+                onSuccess={() => {
+                    setIsEditModalOpen(false); // 1. 关闭 Modal
+                    fetchData(filters, pagination.current); // 2. 刷新列表数据
+                }}
+                countries={countries}
+                provinces={provinces}
+                cities={cities}
+                industries={allIndustryFields}
+                eventFormats={eventFormats} // 传递数据源
+                frequencyTypes={frequencyTypes} // 🚀 传下去
+                onCountryChange={handleCountryChange}
+                onProvinceChange={handleProvinceChange}
+            />
 
-                <ExhibitionSeriesModal 
-                    open={isSeriesModalOpen}
-                    selectedIds={selectedIds}
-                    selectedExhibitions={data.filter(f => selectedIds.includes(f.id))}
-                    onCancel={() => setIsSeriesModalOpen(false)}
-                    onSuccess={() => {
-                        setIsSeriesModalOpen(false);
-                        setSelectedIds([]);
-                        fetchData();
-                    }}
-                />
-            </Card>
-        </div>
+            <ExhibitionSeriesModal 
+                open={isSeriesModalOpen}
+                selectedIds={selectedIds}
+                selectedExhibitions={data.filter(f => selectedIds.includes(f.id))}
+                onCancel={() => setIsSeriesModalOpen(false)}
+                onSuccess={() => {
+                    setIsSeriesModalOpen(false);
+                    setSelectedIds([]);
+                    fetchData();
+                }}
+            />
+        </Card>
+
     );
 };
 

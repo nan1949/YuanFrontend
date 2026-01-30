@@ -4,7 +4,7 @@ import { PlusOutlined, MergeCellsOutlined, EditOutlined } from '@ant-design/icon
 import { getPavilions, deletePavilion, mergePavilions } from '../../services/pavilionService';
 import { Pavilion } from '../../types';
 import PavilionEditModal from '../../components/admin/PavilionEditModal';
-import * as regionService from '../../services/regionService';
+import { useRegionData } from '../../hooks/useRegionData';
 
 const AdminPavilions: React.FC = () => {
     const [data, setData] = useState<Pavilion[]>([]);
@@ -17,9 +17,7 @@ const AdminPavilions: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPavilion, setEditingPavilion] = useState<Pavilion | null>(null);
 
-    const [countries, setCountries] = useState<string[]>([]);
-    const [provinces, setProvinces] = useState<string[]>([]);
-    const [cities, setCities] = useState<string[]>([]);
+    const { countries, provinces, cities, loadCountries, loadProvinces, loadCities } = useRegionData();
     
 
     const fetchData = async () => {
@@ -37,35 +35,16 @@ const AdminPavilions: React.FC = () => {
 
     useEffect(() => { fetchData(); }, [page, keyword]);
 
-   
     useEffect(() => {
-        regionService.getCountries().then(setCountries);
-    }, []);
-
-
-    const handleCountryChange = async (country: string) => {
-        if (country) {
-            const data = await regionService.getProvinces(country);
-            setProvinces(data);
-        }
-    };
-
-    // 处理省份切换
-    const handleProvinceChange = async (country: string, province: string) => {
-        if (country && province) {
-            const data = await regionService.getCities(country, province);
-            setCities(data);
-        }
-    };
+        loadCountries();
+    }, [loadCountries]);
 
     const handleEdit = async (record: Pavilion) => {
             setEditingPavilion(record);
-            if (record.country) {
-                const p = await regionService.getProvinces(record.country);
-                setProvinces(p);
-                if (record.province) {
-                    const c = await regionService.getCities(record.country, record.province);
-                    setCities(c);
+            if (record.country_id) {
+                loadProvinces(record.country_id);
+                if (record.province_id) {
+                    loadCities(record.province_id);
                 }
             }
             setIsModalOpen(true);
@@ -96,8 +75,8 @@ const AdminPavilions: React.FC = () => {
 
     const columns = [
         { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
-        { title: '展馆名称 (中)', dataIndex: 'pavilion_name', key: 'pavilion_name' },
-        { title: '展馆名称 (英)', dataIndex: 'pavilion_name_trans', key: 'pavilion_name_trans' },
+        { title: '展馆名称 (英)', dataIndex: 'pavilion_name', key: 'pavilion_name' },
+        { title: '展馆名称 (中)', dataIndex: 'pavilion_name_trans', key: 'pavilion_name_trans' },
         { title: '城市', dataIndex: 'city', key: 'city', width: 120 },
         {
             title: '操作',
@@ -117,7 +96,7 @@ const AdminPavilions: React.FC = () => {
     ];
 
     return (
-        <div className="p-4">
+      
             <Card className="shadow-sm" bordered={false}>
                 <div className="flex justify-between mb-4">
                     <Space>
@@ -175,11 +154,11 @@ const AdminPavilions: React.FC = () => {
                     countries={countries}
                     provinces={provinces}
                     cities={cities}
-                    onCountryChange={handleCountryChange}
-                    onProvinceChange={handleProvinceChange}
+                    onCountryChange={loadProvinces}
+                    onProvinceChange={loadCities}
                 />
             </Card>
-        </div>
+   
     );
 };
 

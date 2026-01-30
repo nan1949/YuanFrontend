@@ -105,7 +105,7 @@ const AdminOrganizers: React.FC = () => {
     ];
 
     return (
-        <div className="p-4">
+     
             <Card className="shadow-sm" bordered={false}>
                 <div className="flex justify-between mb-4">
                     <Input.Search
@@ -159,7 +159,7 @@ const AdminOrganizers: React.FC = () => {
                     }}
                 />
             </Card>
-        </div>
+ 
     );
 };
 

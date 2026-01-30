@@ -101,7 +101,7 @@ const AdminIndustries: React.FC = () => {
     };
 
     return (
-        <div className="p-6">
+     
             <Row gutter={24}>
                 {/* 左侧树展示 */}
                 <Col span={8}>
@@ -179,7 +179,7 @@ const AdminIndustries: React.FC = () => {
                     </Card>
                 </Col>
             </Row>
-        </div>
+   
     );
 };
 

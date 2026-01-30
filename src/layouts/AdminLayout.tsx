@@ -60,7 +60,7 @@ const AdminLayout: React.FC = () => {
         </header>
 
         {/* 内容展示区 */}
-        <section className="flex-1 p-8 overflow-y-auto bg-[#f8fafc]">
+        <section className="flex-1 p-4 overflow-y-auto bg-[#f8fafc]">
             <Outlet />
         </section>
       </main>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import useTitle from '../../hooks/useTitle';
 import Container from '../../components/Container';
 import { Link } from 'react-router-dom'; 
-import { ExhibitionData, ExhibitorData } from '../../types';
+import { ExhibitionData } from '../../types';
 import ExhibitionFeaturedCard from '../../components/ExhibitionFeaturedCard';
 import { getExhibitions } from '../../services/exhibitionService';
 import { getRecentDynamics } from '../../services/exhibitorService';
