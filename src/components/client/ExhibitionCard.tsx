@@ -106,7 +106,7 @@ const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
 
                 <InfoItem 
                     label='展馆'
-                    value='待调整'
+                    value={data.pavilion}
                 />
             </div>
           
@@ -114,7 +114,7 @@ const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
             <div className={cardRowClasses}>
                 <InfoItem 
                     label='主办方'
-                    value='待调整'
+                    value={data.organizer_name}
                 />
                 <div className="flex items-center">
                     <span className="text-gray-400 flex-shrink-0">官网：</span>

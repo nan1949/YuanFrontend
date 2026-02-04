@@ -16,8 +16,8 @@ import ExhibitionEditModal from '../../components/admin/ExhibitionEditModal';
 import ExhibitionMergeModal from '../../components/admin/ExhibitionMergeModal';
 import ExhibitionSeriesModal from '../../components/admin/ExhibitionSeriesModal';
 import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
-import * as regionService from '../../services/regionService';
 import * as industryService from '../../services/industryService';
+import { useRegionData } from '../../hooks/useRegionData';
 
 
 const AdminExhibitions: React.FC = () => {
@@ -45,9 +45,7 @@ const AdminExhibitions: React.FC = () => {
 
     const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
 
-    const [countries, setCountries] = useState<regionService.RegionOption[]>([]);
-    const [provinces, setProvinces] = useState<regionService.RegionOption[]>([]);
-    const [cities, setCities] = useState<regionService.RegionOption[]>([]);
+    const { countries, provinces, cities, loadCountries, loadProvinces, loadCities } = useRegionData();
 
     const [allIndustryFields, setAllIndustryFields] = useState<string[]>([]);
 
@@ -88,12 +86,12 @@ const AdminExhibitions: React.FC = () => {
         }
     };
 
+    useEffect(() => {
+        loadCountries();
+    }, [loadCountries]);
+
     const loadInitialData = async () => {
         try {
-            // 原有的获取国家、行业等逻辑...
-            const countriesData = await regionService.getCountries();
-            setCountries(countriesData);
-
             const [formats, freqs] = await Promise.all([
                 getEventFormats(),
                 getFrequencyTypes() // 🚀 获取举办周期
@@ -137,34 +135,12 @@ const AdminExhibitions: React.FC = () => {
         }
     };
 
-    // 处理国家切换
-    const handleCountryChange = async (countryId: number) => {
-        setProvinces([]); // 清空旧数据
-        setCities([]);
-        if (countryId) {
-            const data = await regionService.getSubRegions(countryId);
-            setProvinces(data);
-        }
-    };
-
-    // 处理省份切换
-    const handleProvinceChange = async (provinceId: number) => {
-        setCities([]);
-        if (provinceId) {
-            const data = await regionService.getSubRegions(provinceId);
-            setCities(data);
-        }
-    };
-
-    
     const handleEdit = async (record: ExhibitionData) => {
         setEditingFair(record);
         if (record.country_id) {
-            const p = await regionService.getSubRegions(record.country_id);
-            setProvinces(p);
+            loadProvinces(record.country_id);
             if (record.province_id) {
-                const c = await regionService.getSubRegions(record.province_id);
-                setCities(c);
+                loadCities(record.province_id);
             }
         }
         setIsEditModalOpen(true);
@@ -354,8 +330,8 @@ const AdminExhibitions: React.FC = () => {
                 industries={allIndustryFields}
                 eventFormats={eventFormats} // 传递数据源
                 frequencyTypes={frequencyTypes} // 🚀 传下去
-                onCountryChange={handleCountryChange}
-                onProvinceChange={handleProvinceChange}
+                onCountryChange={loadProvinces}
+                onProvinceChange={loadCities}
             />
 
             <ExhibitionSeriesModal 

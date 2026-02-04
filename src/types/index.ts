@@ -38,6 +38,8 @@ export interface ExhibitionData {
   city: string;
   pavilion_id: number;
   organizer_id: number;
+  pavilion: string;
+  organizer_name: string;
   period:string;
   contact: string,
   phone: string,
