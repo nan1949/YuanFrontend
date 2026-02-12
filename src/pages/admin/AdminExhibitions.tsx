@@ -106,6 +106,13 @@ const AdminExhibitions: React.FC = () => {
         }
     };
 
+    const loadHistory = async () => {
+        try {
+            const data = await getSearchHistory();
+            setHistory(data);
+        } catch (e) { console.error("加载历史失败", e); }
+    };
+
     useEffect(() => {
         loadInitialData();
         loadHistory();
@@ -115,23 +122,24 @@ const AdminExhibitions: React.FC = () => {
         fetchData(filters, pagination.current, sortConfig);
     }, [pagination.current, sortConfig]); // 增加 sortConfig 依赖
 
-    const loadHistory = async () => {
-        try {
-            const data = await getSearchHistory();
-            setHistory(data);
-        } catch (e) { console.error("加载历史失败", e); }
-    };
-
+    
     const handleSearch = async (newFilters: { search_name?: string; organizer_id?: number; date_status?: string }) => {
         const mergedFilters = { ...filters, ...newFilters };
         setFilters(mergedFilters);
         setPagination(prev => ({ ...prev, current: 1 })); // 重置页码
         fetchData(mergedFilters, 1);
         // 执行搜索业务逻辑...
-        
-        if (newFilters.search_name?.trim()) {
-            await saveSearchHistory(newFilters.search_name);
-            loadHistory();
+        const searchTerm = newFilters.search_name?.trim();
+        if (searchTerm) {
+            try {
+                await saveSearchHistory(searchTerm);
+                setHistory(prev => {
+                    const filtered = prev.filter(item => item !== searchTerm);
+                    return [searchTerm, ...filtered].slice(0, 10); // 保持最近10条
+                });
+            } catch (e) {
+                console.error("保存搜索历史失败", e);
+            }
         }
     };
 
@@ -232,15 +240,47 @@ const AdminExhibitions: React.FC = () => {
         { 
             title: '开展时间', 
             dataIndex: 'fair_start_date', 
-            width: 110,
+            width: 120,
             sorter: true, // 开启排序 UI
-            render: (text: string) => text ? dayjs(text).format('YYYY-MM-DD') : '-'
+            render: (text: string) => {
+                if (!text) return '-';
+                const date = dayjs(text);
+                const isPast = date.isBefore(dayjs(), 'day');
+                return (
+                    <span style={{ 
+                        whiteSpace: 'nowrap', 
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '13px',
+                        // 过期用灰色背景，未过期用绿色字体
+                        backgroundColor: isPast ? '#f5f5f5' : '#f6ffed',
+                        color: isPast ? '#8c8c8c' : '#52c41a',
+                        border: isPast ? '1px solid #d9d9d9' : '1px solid #b7eb8f'
+                    }}>
+                        {date.format('YYYY-MM-DD')}
+                    </span>
+                );
+            }
         },
         { 
             title: '最新展商', 
             dataIndex: 'exhibitor_edition', 
-            width: 110,
-            render: (text: string) => text ? dayjs(text).format('YYYY-MM-DD') : '-'
+            width: 120,
+            render: (text: string) => {
+                if (!text) return '-';
+                const date = dayjs(text);
+                const isOld = date.isBefore(dayjs().subtract(1, 'year')); // 假设一年前的数据算旧数据
+                return (
+                    <span style={{ 
+                        whiteSpace: 'nowrap',
+                        color: isOld ? '#ff4d4f' : '#1890ff', // 旧数据红色警告，新数据蓝色
+                        fontWeight: isOld ? 'normal' : '500'
+                    }}>
+                        {date.format('YYYY-MM-DD')}
+                        {isOld && <span style={{ fontSize: '10px', marginLeft: '4px' }}>(旧)</span>}
+                    </span>
+                );
+            }
         },
         { 
             title: '人数', 

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Select, message, InputNumber, Space, Divider, Row, Col, Result } from 'antd';
-import { SaveOutlined, ThunderboltOutlined, PlusOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Select, message, InputNumber, Space, Divider, Row, Col, Result, DatePicker } from 'antd';
+import { SaveOutlined, PlusOutlined } from '@ant-design/icons';
 import { getCrawlConfig, createCrawlConfig, updateCrawlConfig, CrawlContentType } from '../../services/crawlConfigService';
+import dayjs from 'dayjs';
+
 
 interface Props {
     fairId: number;
@@ -17,10 +19,15 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
     useEffect(() => {
         const fetchConfig = async () => {
             setLoading(true);
-            setIsAdding(false); // 切换 Tab 时重置新建状态
+            setIsAdding(false); 
             try {
                 const data = await getCrawlConfig(fairId, type);
-                form.setFieldsValue(data);
+                const formattedData = {
+                    ...data,
+                    fair_start_date: data.fair_start_date ? dayjs(data.fair_start_date) : null,
+                    fair_end_date: data.fair_end_date ? dayjs(data.fair_end_date) : null,
+                };
+                form.setFieldsValue(formattedData);
                 setExists(true);
             } catch (error: any) {
                 if (error.response?.status === 404) {
@@ -44,6 +51,8 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
                 ...values,
                 fair_id: fairId,
                 content_type: type,
+                fair_start_date: values.fair_start_date ? values.fair_start_date.format('YYYY-MM-DD') : null,
+                fair_end_date: values.fair_end_date ? values.fair_end_date.format('YYYY-MM-DD') : null,
             };
 
             Object.keys(payload).forEach(key => {
@@ -67,7 +76,11 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
             }
 
             const newData = await getCrawlConfig(fairId, type);
-            form.setFieldsValue(newData);
+            form.setFieldsValue({
+                ...newData,
+                fair_start_date: newData.fair_start_date ? dayjs(newData.fair_start_date) : null,
+                fair_end_date: newData.fair_end_date ? dayjs(newData.fair_end_date) : null,
+            });
         } catch (error: any) {
             console.error("Save Error:", error.response?.data);
             message.error(error.response?.data?.detail?.[0]?.msg || '保存失败，请检查数据格式');
@@ -113,7 +126,7 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
                     <Form.Item name="start_url" label="起始 URL (start_url)"><Input placeholder="https://" /></Form.Item>
                 </Col>
                 <Col span={4}>
-                    <Form.Item name="retrieve_method" label="请求方法">
+                    <Form.Item name="retrieve_method" label="请求方法" rules={[{ required: true, message: '请选择请求方法' }]}>
                         <Select options={[{value:'get'}, {value:'post'}, {value:'driver.get'}, {value:'local'}]} />
                     </Form.Item>
                 </Col>
@@ -121,8 +134,16 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
             
             </Row>
             <Row gutter={16}>
-                <Col span={6}><Form.Item name="fair_start_date" label="展会开始日期"><Input /></Form.Item></Col>
-                <Col span={6}><Form.Item name="fair_end_date" label="展会结束日期"><Input /></Form.Item></Col>
+                <Col span={6}>
+                    <Form.Item name="fair_start_date" label="展会开始日期">
+                        <DatePicker style={{ width: '100%' }} />
+                    </Form.Item>
+                </Col>
+                <Col span={6}>
+                    <Form.Item name="fair_end_date" label="展会结束日期">
+                        <DatePicker style={{ width: '100%' }} />
+                    </Form.Item>
+                </Col>
             </Row>
             <Row gutter={16}>
                 <Col span={8}>
@@ -140,7 +161,9 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
             <Divider orientation="left">2. 翻页与自动化脚本</Divider>
             <Row gutter={16}>
                 <Col span={4}>
-                    <Form.Item name="pager_type" label="翻页类型"><Input placeholder="scroll/page_num" /></Form.Item>
+                    <Form.Item name="pager_type" label="翻页类型">
+                        <Select options={[{value:'params'}, {value:'form_data'}, {value:'url.page'}]} />
+                    </Form.Item>
                 </Col>
                 <Col span={4}>
                     <Form.Item name="page_variable" label="分页变量名"><Input placeholder="e.g. p" /></Form.Item>
@@ -171,7 +194,7 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
             <Divider orientation="left">3. 字段定位 (XPath / Selectors)</Divider>
             <Row gutter={16}>
                 <Col span={4}>
-                    <Form.Item name="result_type" label="结果类型">
+                    <Form.Item name="result_type" label="结果类型" rules={[{ required: true, message: '请选择结果类型' }]}>
                         <Select options={[{value: 'json'}, {value: 'html'}]} />
                     </Form.Item>
                 </Col>
@@ -192,17 +215,22 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
             </Row>
 
             <Row gutter={16}>
-                <Col span={4}><Form.Item name="xpath_country" label="国家 XPath"><Input /></Form.Item></Col>
-                <Col span={4}><Form.Item name="xpath_city" label="城市 XPath"><Input /></Form.Item></Col>
-                <Col span={8}><Form.Item name="xpath_address" label="详细地址 XPath"><Input /></Form.Item></Col>
-                <Col span={4}><Form.Item name="xpath_zip" label="邮编 XPath"><Input /></Form.Item></Col>
-                <Col span={4}><Form.Item name="xpath_hall" label="展馆 XPath"><Input /></Form.Item></Col>
+                <Col span={6}><Form.Item name="xpath_country" label="国家 XPath"><Input /></Form.Item></Col>
+                <Col span={6}><Form.Item name="xpath_city" label="城市 XPath"><Input /></Form.Item></Col>
+                <Col span={6}><Form.Item name="xpath_address" label="详细地址 XPath"><Input /></Form.Item></Col>
+                <Col span={6}><Form.Item name="xpath_zip" label="邮编 XPath"><Input /></Form.Item></Col>
+                
             </Row>
 
             <Row gutter={16}>
-                <Col span={6}><Form.Item name="xpath_category" label="类别 XPath"><Input /></Form.Item></Col>
+                <Col span={6}><Form.Item name="xpath_hall" label="展馆 XPath"><Input /></Form.Item></Col>
+                
                 <Col span={6}><Form.Item name="xpath_booth_number" label="展位号 XPath"><Input /></Form.Item></Col>
+                
+            </Row>
+            <Row gutter={16}>
                 <Col span={6}><Form.Item name="xpath_brands" label="品牌 XPath"><Input /></Form.Item></Col>
+                <Col span={6}><Form.Item name="xpath_category" label="行业类别 XPath"><Input /></Form.Item></Col>
                 <Col span={6}><Form.Item name="xpath_products" label="产品 XPath"><Input /></Form.Item></Col>
             </Row>
 
@@ -213,8 +241,8 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
             </Row>
 
             <Row gutter={16}>
-                <Col span={12}><Form.Item name="xpath_intro" label="简介 XPath"><Input /></Form.Item></Col>
-                <Col span={12}><Form.Item name="xpath_show_objective" label="参展目标 XPath"><Input /></Form.Item></Col>
+                <Col span={6}><Form.Item name="xpath_intro" label="简介 XPath"><Input /></Form.Item></Col>
+                <Col span={6}><Form.Item name="xpath_show_objective" label="参展目标 XPath"><Input /></Form.Item></Col>
             </Row>
 
             <Form.Item>
