@@ -1,6 +1,7 @@
 import React from 'react';
+import dayjs from 'dayjs';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const LINK_STYLE: string = "text-sm text-gray-700 font-normal hover:text-blue-600 transition duration-150";
 
@@ -41,6 +42,30 @@ const UserNav: React.FC = () => {
                            translate-y-2 group-hover:translate-y-0
                            transition-all duration-200 ease-out z-[100] py-2"
             >
+                <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                    <p className="text-xs text-gray-400 mb-1">账号身份</p>
+                    {user.is_admin ? (
+                        <span className="text-sm font-bold text-purple-600">管理员</span>
+                    ) : (
+                        <div>
+                            <div className="flex items-center space-x-2">
+                                <span className={`text-sm font-bold ${user.is_valid_member ? 'text-orange-500' : 'text-gray-400'}`}>
+                                    {user.is_valid_member ? '正式会员' : '普通用户/已过期'}
+                                </span>
+                                {user.is_valid_member && (
+                                    <span className="text-[10px] bg-orange-100 text-orange-600 px-1 rounded">有效</span>
+                                )}
+                            </div>
+                            {user.membership_end_at && (
+                                <p className={`text-[10px] mt-1 ${user.is_valid_member ? 'text-gray-400' : 'text-red-400 font-medium'}`}>
+                                    {user.is_valid_member ? '有效期至: ' : '已于此日期到期: '}
+                                    {dayjs(user.membership_end_at).format('YYYY-MM-DD')}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+                
                 {user.is_admin && (
                     <>
                         {isAdminPage ? (

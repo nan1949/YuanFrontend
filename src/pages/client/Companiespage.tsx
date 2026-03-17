@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import SearchResultCount from '../../components/SearchResultCount';
-import CompanyCard from '../../components/CompanyCard';
+import CompanyCard from '../../components/client/CompanyCard';
 import { ExhibitorData } from '../../types'; 
 import { searchExhibitors } from '../../services/exhibitorService'; 
 import SearchBox from '../../components/SearchBox';

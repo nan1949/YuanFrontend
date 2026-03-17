@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback  } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SearchResultCount from '../../components/SearchResultCount';
 import ExhibitionCard from '../../components/client/ExhibitionCard';
 import PaginationControls from '../../components/PaginationControls';
@@ -15,6 +16,7 @@ interface ExhibitionsPageProps {}
 const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
 
   useTitle('国际展会搜索-展外展')
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
   const [exhibitions, setExhibitions] = useState<ExhibitionData[] | null>(null);
@@ -30,7 +32,7 @@ const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
   useEffect(() => {
     const fetchExhibitions = async () => {
       if (!isLoggedIn && (currentPage > 1 || searchTerm)) {
-        alert("请登录后使用搜索和翻页功能"); // 也可以改为更加美观的 Toast 提示
+        navigate('/login');
         return;
       }
 
@@ -55,24 +57,24 @@ const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
     };
 
     fetchExhibitions();
-  }, [searchTerm, currentPage, pageSize, isLoggedIn]);
+  }, [searchTerm, currentPage, pageSize, isLoggedIn, navigate]);
 
   const handleSearchTermChange = useCallback((newSearchTerm: string) => {
     if (!isLoggedIn) {
-      alert("请登录后进行搜索");
+      navigate('/login');
       return;
     }
     setCurrentPage(1); 
     setSearchTerm(newSearchTerm);
-  }, [isLoggedIn]);
+  }, [isLoggedIn, navigate]);
 
   const handlePageChange = useCallback((newPage: number) => {
       if (!isLoggedIn) {
-        alert("请登录后查看更多结果");
+        navigate('/login');
         return;
       }
-      if (newPage > 10) {
-        alert("仅支持查看前 10 页数据，请用搜索词。");
+      if (newPage > 5) {
+        alert("仅支持查看前 5 页数据，请用搜索词。");
         return;
       }
       setCurrentPage(newPage);
@@ -80,7 +82,7 @@ const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
 
   const handlePageSizeChange = useCallback((newSize: number) => {
       setPageSize(newSize);
-      setCurrentPage(1); // 切换每页条数后，页码重置为第一页
+      setCurrentPage(1);
   }, []);
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -145,7 +147,7 @@ const ExhibitionsPage: React.FC<ExhibitionsPageProps> = () => {
             </div>
             
             {/* 分页控制 */}
-            {isLoggedIn && totalPages > 1 && <PaginationControls 
+            {totalPages > 1 && <PaginationControls 
                 totalCount={totalCount}
                 currentPage={currentPage}
                 pageSize={pageSize}

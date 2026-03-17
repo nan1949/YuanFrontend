@@ -17,7 +17,7 @@ export interface FrequencyType {
 
 
 export interface ExhibitionData {
-  id: number;
+  id: string;
   fair_name: string;
   fair_name_trans: string;
   fair_series_id: number;
@@ -55,27 +55,29 @@ export interface ExhibitionData {
 
 
 export interface ExhibitorData {
-    // 保持原有的核心字段
-    id: number;
-    fair_id: number | null;
-    exhibitor_name: string | null;
-    company_id: string | null;
-    country: string | null;
-    city: string | null;
-    logo_url: string | null;
-    intro: string | null;
-    fair_start_date: string | null;
-    fair_end_date: string | null;
+    id: string;
+    fair_id: string;
+    fair_name: string;
+    sub_expo: string;
+    exhibitor_name: string;
+    company_id: string ;
+    country: string
+    province: string;
+    city: string;
+    logo_url: string;
+    intro: string;
+    fair_start_date: string ;
+    fair_end_date: string;
+    target_countries: string[];
     
-    // 🚀 新增的字段，与后端接口保持一致
-    company_name: string | null;
-    website: string | null;
-    phone: string | null;
-    email: string | null;
-    brands: string | null;
-    products: string | null;
-    category: string | null;
-    booth_number: string | null;
+    company_name: string;
+    website: string;
+    phone: string;
+    email: string;
+    brands: string;
+    products: string;
+    category: string;
+    booth_number: string;
 }
 
 

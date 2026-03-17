@@ -50,7 +50,7 @@ export interface CrawlConfigData {
     source_url?: string;
 }
 
-export const getCrawlConfig = async (fairId: number, contentType: CrawlContentType): Promise<CrawlConfigData> => {
+export const getCrawlConfig = async (fairId: string, contentType: CrawlContentType): Promise<CrawlConfigData> => {
     const res = await api.get(`/crawl-configs/${fairId}?content_type=${contentType}`);
     return res.data;
 };
@@ -60,7 +60,7 @@ export const createCrawlConfig = async (data: CrawlConfigData) => {
     return res.data;
 };
 
-export const updateCrawlConfig = async (fairId: number, contentType: CrawlContentType, data: Partial<CrawlConfigData>) => {
+export const updateCrawlConfig = async (fairId: string, contentType: CrawlContentType, data: Partial<CrawlConfigData>) => {
     const res = await api.put(`/crawl-configs/${fairId}?content_type=${contentType}`, data);
     return res.data;
 };

@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { ExhibitionData } from '../../types';
 import { card2ndTitleClasses, cardClasses, cardRowClasses, cardTitleClasses } from '../../styles/tailwindStyles';
 import TagGroup from '../TagGroup';
+import { useAuth } from '../../contexts/AuthContext';
 
-// 辅助函数：格式化日期
+
 const formatDate = (dateString: string | null): string => {
   if (!dateString) return '待定';
   return dateString.split('T')[0];
@@ -18,9 +19,7 @@ interface InfoItemProps {
 const InfoItem: React.FC<InfoItemProps> = ({ label, value }) => {
 
   const placeholder = '—'; 
-
   const displayValue = value ? value : placeholder;
-
   const titleText = value ? value : 'N/A';
 
   return (
@@ -42,27 +41,24 @@ const InfoItem: React.FC<InfoItemProps> = ({ label, value }) => {
 
 
 const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
-  const startDate = formatDate(data.fair_start_date);
-  const endDate = formatDate(data.fair_end_date);
+    const { user } = useAuth();
+    const startDate = formatDate(data.fair_start_date);
+    const endDate = formatDate(data.fair_end_date);
 
-  const locationString = [data.country, data.province, data.city]
+    const locationString = [data.country, data.province, data.city]
                           .filter(Boolean)
                           .join(', ')
 
-    const isLoggedIn = !!localStorage.getItem('token');
+    const isValidMember = user?.is_valid_member;
 
   return (
    <div className={cardClasses}>
-      
-      {/* 核心布局：Logo在左，内容在右，使用 flex */}
       <div className="flex items-start"> 
-        
-        {/* 左侧：Logo (独占 w-20 h-20 空间，并保持 flex-shrink-0 不被压缩) */}
         {data.logo_url ? (
           <img 
             src={data.logo_url} 
             alt={`${data.fair_name} Logo`} 
-            className="w-20 h-20 object-contain mr-4 rounded flex-shrink-0" // 确保 Logo 不被压缩
+            className="w-20 h-20 object-contain mr-4 rounded flex-shrink-0" 
           />
         ) : (
            <div className="w-20 h-20 mr-4 flex items-center justify-center bg-gray-200 text-gray-500 rounded text-base font-semibold flex-shrink-0">
@@ -70,10 +66,8 @@ const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
            </div>
         )}
 
-        {/* 右侧：所有内容（标题、标签、信息项、介绍）容器 */}
         <div className="flex flex-col flex-grow min-w-0 space-y-3">
             
-            {/* 1. 标题区域 */}
             <Link 
                 to={`/exhibitions/${data.id}`} 
                 className={cardTitleClasses}
@@ -118,19 +112,16 @@ const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
                 />
                 <div className="flex items-center">
                     <span className="text-gray-400 flex-shrink-0">官网：</span>
-                    {!isLoggedIn ? (
-                        // 未登录状态：显示置灰文字
-                        <div
-                            className="relative cursor-pointer group"
-                        >
-                            <span className="text-blue-400 blur-[3px] select-none">
-                                登录后查看
+                    { !isValidMember ? (
+                        // 2. 已登录但非有效会员：显示模糊效果并提示升级
+                        <div className="relative cursor-pointer group">
+                            <span className="text-blue-300 blur-[4px] select-none text-sm">
+                                https://www.exhibition-website.com
                             </span>
-                            <span className="absolute left-0 -top-6 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-lg">
-                                登录后查看
+                            <span className="absolute left-0 -top-7 hidden group-hover:block bg-white text-gray-800 text-[11px] px-2 py-1 rounded border border-gray-200 whitespace-nowrap shadow-md z-10 font-medium">
+                                仅限会员查看
                             </span>
                         </div>
-                        
                     ) : data.website ? (
                         <a 
                             href={data.website.startsWith('http') ? data.website : `https://${data.website}`}

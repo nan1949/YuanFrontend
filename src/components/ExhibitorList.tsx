@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ExhibitorData } from '../types'; // 假设导入展商数据类型
 import PaginationControls from './PaginationControls';
-import ExhibitorCard from './CompanyCard';
+import ExhibitorCard from './client/CompanyCard';
 import SearchResultCount from './SearchResultCount';
 
 interface ExhibitorListProps {

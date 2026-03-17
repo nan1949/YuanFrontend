@@ -6,7 +6,6 @@ import { ArrowLeftOutlined, GlobalOutlined, CalendarOutlined, UploadOutlined, Fi
 import dayjs from 'dayjs';
 import { getExhibitionDetail } from '../../services/exhibitionService';
 import { ExhibitionData } from '../../types';
-import AdminExhibitors from './AdminExhibitors'; // 复用已有的展商列表组件
 import { uploadExhibitorsExcel, uploadExhibitorsTxt } from '../../services/exhibitorService';
 import CrawlConfigForm from '../../components/admin/CrawlConfigForm';
 
@@ -15,7 +14,7 @@ const { Title, Text } = Typography;
 
 const ExhibitionDetailView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const fairId = Number(id);
+    const fairId = id;
 
     const [loading, setLoading] = useState(true);
     const [exhibition, setExhibition] = useState<ExhibitionData | null>(null);
@@ -27,21 +26,13 @@ const ExhibitionDetailView: React.FC = () => {
     const navigate = useNavigate();
 
     const tabItems = [
-        {
-            key: 'exhibitors',
-            label: '参展商名录',
-            children: <AdminExhibitors 
-                key={id} // 当 ID 变化时重置组件
-                onRef={exhibitorsRef} // 传递 ref 以便刷新数据
-                initialFairId={fairId} isSubView={true} 
-            />,
-        },
+    
         {
             key: 'crawl_list',
             label: '采集配置-列表页',
             children: (
                 <Card>
-                    <CrawlConfigForm fairId={fairId} type="list" />
+                    <CrawlConfigForm fairId={fairId || ''} type="list" />
                 </Card>
             ),
         },
@@ -50,7 +41,7 @@ const ExhibitionDetailView: React.FC = () => {
             label: '采集配置-详情页',
             children: (
                 <Card>
-                    <CrawlConfigForm fairId={fairId} type="detail" />
+                    <CrawlConfigForm fairId={fairId || ''} type="detail" />
                 </Card>
             ),
         },
@@ -75,7 +66,7 @@ const ExhibitionDetailView: React.FC = () => {
         if (!id) return;
         setUploading(true);
         try {
-            const res = await uploadExhibitorsExcel(Number(id), file);
+            const res = await uploadExhibitorsExcel(id, file);
             message.success(res.message || '上传成功');
             // 上传成功后，调用展商列表子组件的刷新方法
             exhibitorsRef.current?.fetchData();
@@ -97,9 +88,10 @@ const ExhibitionDetailView: React.FC = () => {
     };
 
     const handleTxtUpload = async (file: File) => {
+        if (!id) return;
         setUploading(true);
         try {
-            const res = await uploadExhibitorsTxt(Number(id), file);
+            const res = await uploadExhibitorsTxt(id, file);
             message.success(res.message);
             exhibitorsRef.current?.fetchData();
         } catch (error: any) {
@@ -190,10 +182,7 @@ const ExhibitionDetailView: React.FC = () => {
                 }
             
             >
-                {/* 直接复用 AdminExhibitors 
-                    注意：需要修改 AdminExhibitors 使其支持传入 fair_id 作为初始筛选条件
-                */}
-                
+         
                 <Tabs defaultActiveKey="exhibitors" items={tabItems} />
             </Card>
         </Space>

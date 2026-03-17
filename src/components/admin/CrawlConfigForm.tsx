@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 
 
 interface Props {
-    fairId: number;
+    fairId: string;
     type: CrawlContentType;
 }
 

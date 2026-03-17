@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import UserNav from '../components/UserNav';
+import UserNav from '../components/client/UserNav';
 import { 
   AppstoreOutlined, 
   GlobalOutlined, 

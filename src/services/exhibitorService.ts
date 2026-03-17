@@ -72,10 +72,10 @@ export const searchExhibitors = async (
 };
 
 
-export const uploadExhibitorsExcel = async (fairId: number, file: File): Promise<any> => {
+export const uploadExhibitorsExcel = async (fairId: string, file: File): Promise<any> => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('fair_id', fairId.toString());
+    formData.append('fair_id', fairId);
 
     const response = await api.post('/exhibitors/upload-excel', formData, {
         headers: {
@@ -85,9 +85,9 @@ export const uploadExhibitorsExcel = async (fairId: number, file: File): Promise
     return response.data;
 };
 
-export const uploadExhibitorsTxt = async (fairId: number, file: File) => {
+export const uploadExhibitorsTxt = async (fairId: string, file: File) => {
     const formData = new FormData();
-    formData.append('fair_id', fairId.toString());
+    formData.append('fair_id', fairId);
     formData.append('file', file);
     
     const response = await api.post('/exhibitors/upload-txt', formData, {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import api from '../services/api';
 
 // 1. 定义用户数据类型
@@ -6,8 +6,10 @@ interface User {
     id: number;
     email: string;
     full_name: string;
-    avatar_url: string; // 默认头像URL
-    is_admin: boolean; // 🚀 新增
+    avatar_url: string; 
+    is_admin: boolean; 
+    membership_end_at?: string;
+    is_valid_member: boolean;
 }
 
 interface LoginPayload {
@@ -42,6 +44,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }); 
 
     const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+
+    const refreshUser = async () => {
+        const currentToken = localStorage.getItem('token');
+        if (!currentToken) return;
+
+        try {
+            const userRes = await api.get('/users/me');
+            const latestUser = userRes.data;
+            
+            setUser(latestUser);
+            localStorage.setItem('user', JSON.stringify(latestUser));
+            console.log("用户信息已自动同步");
+        } catch (error: any) {
+            console.error("同步用户信息失败:", error);
+            if (error.response?.status === 401) {
+                logout();
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (token) {
+            refreshUser();
+        }
+    }, []);
     
     const login = async ({ email, password }: LoginPayload) => {
     
