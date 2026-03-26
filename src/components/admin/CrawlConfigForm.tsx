@@ -8,13 +8,31 @@ import dayjs from 'dayjs';
 interface Props {
     fairId: string;
     type: CrawlContentType;
+    initialDates?: {
+        start: string | null;
+        end: string | null;
+    };
 }
 
-const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
+const CrawlConfigForm: React.FC<Props> = ({ fairId, type, initialDates }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [exists, setExists] = useState(false);
-    const [isAdding, setIsAdding] = useState(false); // 是否处于新建填写状态
+    const [isAdding, setIsAdding] = useState(false); 
+
+    const startDate = Form.useWatch('fair_start_date', form);
+
+    const syncExhibitionDates = () => {
+        if (initialDates?.start) {
+            form.setFieldsValue({
+                fair_start_date: dayjs(initialDates.start),
+                fair_end_date: initialDates.end ? dayjs(initialDates.end) : dayjs(initialDates.start),
+            });
+            message.info('已同步展会核心日期');
+        } else {
+            message.warning('该展会暂无日期信息');
+        }
+    };
 
     useEffect(() => {
         const fetchConfig = async () => {
@@ -133,7 +151,7 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
            
             
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} align="bottom">
                 <Col span={6}>
                     <Form.Item name="fair_start_date" label="展会开始日期">
                         <DatePicker style={{ width: '100%' }} />
@@ -141,7 +159,21 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type }) => {
                 </Col>
                 <Col span={6}>
                     <Form.Item name="fair_end_date" label="展会结束日期">
-                        <DatePicker style={{ width: '100%' }} />
+                        <DatePicker 
+                            style={{ width: '100%' }} 
+                            defaultPickerValue={startDate ? dayjs(startDate) : undefined}
+                        />
+                    </Form.Item>
+                </Col>
+                <Col span={6}>
+                    <Form.Item label=" ">
+                        <Button 
+                            type="dashed" 
+                            onClick={syncExhibitionDates}
+                            title="从展会详情页同步日期"
+                        >
+                            同步展会基础日期
+                        </Button>
                     </Form.Item>
                 </Col>
             </Row>

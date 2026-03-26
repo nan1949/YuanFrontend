@@ -32,7 +32,14 @@ const ExhibitionDetailView: React.FC = () => {
             label: '采集配置-列表页',
             children: (
                 <Card>
-                    <CrawlConfigForm fairId={fairId || ''} type="list" />
+                    <CrawlConfigForm 
+                        fairId={fairId || ''} 
+                        type="list" 
+                        initialDates={{
+                            start: exhibition?.fair_start_date || null,
+                            end: exhibition?.fair_end_date || null
+                        }}
+                    />
                 </Card>
             ),
         },
@@ -41,7 +48,14 @@ const ExhibitionDetailView: React.FC = () => {
             label: '采集配置-详情页',
             children: (
                 <Card>
-                    <CrawlConfigForm fairId={fairId || ''} type="detail" />
+                    <CrawlConfigForm 
+                        fairId={fairId || ''} 
+                        type="detail" 
+                        initialDates={{
+                            start: exhibition?.fair_start_date || null,
+                            end: exhibition?.fair_end_date || null
+                        }}
+                    />
                 </Card>
             ),
         },
