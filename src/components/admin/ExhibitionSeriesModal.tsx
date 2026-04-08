@@ -5,7 +5,7 @@ import { categorizeExhibitionSeries } from '../../services/exhibitionService';
 
 interface ExhibitionSeriesModalProps {
     open: boolean;
-    selectedIds: number[];
+    selectedIds: string[];
     selectedExhibitions: ExhibitionData[]; // 🚀 增加此属性，用于获取名称
     onCancel: () => void;
     onSuccess: () => void;

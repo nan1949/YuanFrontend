@@ -12,7 +12,8 @@ export interface ExhibitionSearchParams {
     size: number;
     search_name?: string | null;
     organizer_id?: number | null;
-    date_status?: 'expired' | 'ongoing' | null;
+    date_status?: 'expired' | 'ongoing' | 'none' | null;
+    fair_status?: 'active' | 'draft' | 'postponed' | 'cancelled' | 'ceased' | null;
     sort_by?: 'country' | 'fair_start_date' | null;
     sort_order?: 'asc' | 'desc' | null;
 }
@@ -49,14 +50,14 @@ export const createExhibition = async (data: Partial<ExhibitionData>): Promise<a
 };
 
 
-export const updateExhibition = async (id: number, data: Partial<ExhibitionData>): Promise<ExhibitionData> => {
+export const updateExhibition = async (id: string, data: Partial<ExhibitionData>): Promise<ExhibitionData> => {
     const response = await api.put(`/exhibitions/${id}`, data);
     return response.data;
 };
 
 
 export const localizeExhibitionImage = async (
-    id: number, 
+    id: string, 
     externalUrl: string, 
     targetType: 'logo_url' | 'banner_url'
 ): Promise<ExhibitionData> => {
@@ -68,7 +69,7 @@ export const localizeExhibitionImage = async (
 };
 
 
-export const deleteExhibition = async (id: number): Promise<void> => {
+export const deleteExhibition = async (id: string): Promise<void> => {
     await api.delete(`/exhibitions/${id}`);
 };
 
@@ -82,7 +83,7 @@ export const mergeExhibitions = async (keepId: number, duplicateIds: number[]): 
 };
 
 
-export const categorizeExhibitionSeries = async (fairIds: number[], seriesName: string) => {
+export const categorizeExhibitionSeries = async (fairIds: string[], seriesName: string) => {
     const response = await api.post(`/exhibitions/categorize-series`, {
         fair_ids: fairIds,
         custom_series_name: seriesName

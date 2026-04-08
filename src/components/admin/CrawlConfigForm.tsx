@@ -63,6 +63,7 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type, initialDates }) => {
 
     const onFinish = async (values: any) => {
         setLoading(true); // 开启全局加载
+        const hideLoading = message.loading('正在保存配置...', 0);
         
         try {
             const payload = {
@@ -74,24 +75,19 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type, initialDates }) => {
             };
 
             Object.keys(payload).forEach(key => {
-                // 将空字符串转为 null，避免后端 Pydantic 校验字符串长度或格式失败
                 if (payload[key] === '' || payload[key] === undefined) {
                     payload[key] = null;
                 }
             });
             if (exists) {
                 await updateCrawlConfig(fairId, type, payload);
-                message.success({
-                    content: `${type === 'list' ? '列表' : '详情'}采集配置已保存成功`,
-                    key: 'save_loading', // 使用 key 可以替换之前的 loading 提示（如果有的活）
-                    duration: 2
-                });
             } else {
                 await createCrawlConfig(payload);
-                message.success(`${type === 'list' ? '列表' : '详情'}配置创建成功`);
                 setExists(true);
                 setIsAdding(false);
             }
+            hideLoading();
+            message.success(`${type === 'list' ? '列表' : '详情'}采集配置保存成功！`);
 
             const newData = await getCrawlConfig(fairId, type);
             form.setFieldsValue({
@@ -100,6 +96,7 @@ const CrawlConfigForm: React.FC<Props> = ({ fairId, type, initialDates }) => {
                 fair_end_date: newData.fair_end_date ? dayjs(newData.fair_end_date) : null,
             });
         } catch (error: any) {
+            hideLoading();
             console.error("Save Error:", error.response?.data);
             message.error(error.response?.data?.detail?.[0]?.msg || '保存失败，请检查数据格式');
         } finally {

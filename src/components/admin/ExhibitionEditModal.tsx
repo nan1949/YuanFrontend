@@ -22,15 +22,26 @@ interface ExhibitionEditModalProps {
     industries: string[];
     eventFormats: EventFormat[]; // 增加展会形式数据源
     frequencyTypes: FrequencyType[];
+    fairStatusOptions: { zh: string; en: string; value: string }[];
     onCountryChange: (countryId: number) => void;
     onProvinceChange: (provinceId: number) => void;
 }
 
 
 const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
-    open, editingFair, onCancel, onSuccess, countries, provinces, cities, industries, eventFormats,
+    open, 
+    editingFair, 
+    onCancel, 
+    onSuccess, 
+    countries, 
+    provinces, 
+    cities, 
+    industries, 
+    eventFormats,
     frequencyTypes,
-    onCountryChange, onProvinceChange
+    fairStatusOptions,
+    onCountryChange, 
+    onProvinceChange
 }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
@@ -54,7 +65,7 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                 setStartDateRef(start);
                 form.setFieldsValue({
                     ...editingFair,
-
+                    fair_status: editingFair.fair_status || 'active',
                     country_id_trigger: editingFair.country_id,
                     province_id_trigger: editingFair.province_id,
                     city_id_trigger: editingFair.city_id,
@@ -65,6 +76,7 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
             } else {
                 form.resetFields();
                 setStartDateRef(null);
+                form.setFieldsValue({ fair_status: 'active' });
             }
         }
     }, [open, editingFair, form]);
@@ -514,7 +526,20 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
 
                 {/* 第四行：日期相关 */}
                 <Row gutter={24}>
-                    <Col span={8}>
+                    <Col span={6}>
+                        <Form.Item name="fair_status" label="展会状态" rules={[{ required: true }]}>
+                            <Select 
+                                placeholder="请选择展会状态"
+                                options={fairStatusOptions.map(f => ({
+                                    // 展示：正常 (Active)
+                                    label: f.en ? `${f.zh} (${f.en})` : f.zh, 
+                                    // 提交：active
+                                    value: f.value 
+                                }))}
+                            />
+                        </Form.Item>
+                    </Col>
+                    <Col span={6}>
                         <Form.Item name="fair_start_date" label="开始日期">
                             <DatePicker 
                                 className="w-full" 
@@ -526,7 +551,7 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                             />
                         </Form.Item>
                     </Col>
-                    <Col span={8}>
+                    <Col span={6}>
                         <Form.Item name="fair_end_date" label="结束日期">
                             <DatePicker
                                 className="w-full" 
@@ -535,7 +560,8 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
                                 />
                         </Form.Item>
                     </Col>
-                    <Col span={8}>
+                    
+                    <Col span={6}>
                         <Form.Item name="period" label="举办周期">
                             <Select 
                                 showSearch 

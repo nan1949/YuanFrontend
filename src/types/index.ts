@@ -21,6 +21,7 @@ export interface ExhibitionData {
   fair_name: string;
   fair_name_trans: string;
   fair_series_id: number;
+  fair_status: string;
   website: string;
   fair_start_date: string;
   fair_end_date: string;

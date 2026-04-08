@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, Button, message, Space, Popconfirm, Card
+import { Table, Button, message, Space, Popconfirm, Card, Tag
 } from 'antd';
 import dayjs from 'dayjs';
 import { 
@@ -15,9 +15,27 @@ import ExhibitionHeader from '../../sections/admin/ExhibitionHeader';
 import ExhibitionEditModal from '../../components/admin/ExhibitionEditModal';
 import ExhibitionMergeModal from '../../components/admin/ExhibitionMergeModal';
 import ExhibitionSeriesModal from '../../components/admin/ExhibitionSeriesModal';
+import ExhibitionCrawlModal from '../../components/admin/ExhibitionCrawlModal';
 import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
 import * as industryService from '../../services/industryService';
 import { useRegionData } from '../../hooks/useRegionData';
+
+
+const statusMap: Record<string, { color: string, text: string }> = {
+    active: { color: 'green', text: '正常' },
+    draft: { color: 'default', text: '草稿' },
+    postponed: { color: 'orange', text: '延期' },
+    cancelled: { color: 'red', text: '取消' },
+    ceased: { color: 'magenta', text: '停办' },
+};
+
+const fairStatusOptions = [
+    { zh: '正常', en: 'Active', value: 'active' },
+    { zh: '草稿', en: 'Draft', value: 'draft' },
+    { zh: '延期', en: 'Postponed', value: 'postponed' },
+    { zh: '取消', en: 'Cancelled', value: 'cancelled' },
+    { zh: '停办', en: 'Ceased', value: 'ceased' },
+];
 
 
 const AdminExhibitions: React.FC = () => {
@@ -25,7 +43,7 @@ const AdminExhibitions: React.FC = () => {
     const [data, setData] = useState<ExhibitionData[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     const [history, setHistory] = useState<string[]>([]);
     const [eventFormats, setEventFormats] = useState<EventFormat[]>([]);
@@ -34,7 +52,8 @@ const AdminExhibitions: React.FC = () => {
     const [filters, setFilters] = useState({
         search_name: '',
         organizer_id: undefined as number | undefined,
-        date_status: undefined as string | undefined
+        date_status: undefined as string | undefined,
+        fair_status: undefined as string | undefined
     });
     
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
@@ -44,6 +63,7 @@ const AdminExhibitions: React.FC = () => {
     const [editingFair, setEditingFair] = useState<ExhibitionData | null>(null);
 
     const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+    const [isCrawlModalOpen, setIsCrawlModalOpen] = useState(false);
 
     const { countries, provinces, cities, loadCountries, loadProvinces, loadCities } = useRegionData();
 
@@ -73,7 +93,7 @@ const AdminExhibitions: React.FC = () => {
                 search_name: currentFilters.search_name,
                 organizer_id: currentFilters.organizer_id,
                 date_status: currentFilters.date_status as any,
-                // --- 传递排序到后端 ---
+                fair_status: currentFilters.fair_status as any,
                 sort_by: currentSort.columnKey,
                 sort_order: currentSort.order
             });
@@ -123,7 +143,7 @@ const AdminExhibitions: React.FC = () => {
     }, [pagination.current, sortConfig]); // 增加 sortConfig 依赖
 
     
-    const handleSearch = async (newFilters: { search_name?: string; organizer_id?: number; date_status?: string }) => {
+    const handleSearch = async (newFilters: { search_name?: string; organizer_id?: number; date_status?: string; fair_status?: string }) => {
         const mergedFilters = { ...filters, ...newFilters };
         setFilters(mergedFilters);
         setPagination(prev => ({ ...prev, current: 1 })); // 重置页码
@@ -159,7 +179,7 @@ const AdminExhibitions: React.FC = () => {
         setIsEditModalOpen(true);
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (id: string) => {
         try {
         await deleteExhibition(id);
         message.success('删除成功');
@@ -237,6 +257,15 @@ const AdminExhibitions: React.FC = () => {
             ellipsis: true,
             render: (text: string) => text ? <a href={text} target="_blank" rel="noreferrer" className="text-blue-500">{text}</a> : '-' 
         },
+        {
+            title: '状态',
+            dataIndex: 'fair_status',
+            width: 100,
+            render: (status: string) => {
+                const config = statusMap[status] || { color: 'blue', text: status || '未知' };
+                return <Tag color={config.color}>{config.text}</Tag>;
+            }
+        },
         { 
             title: '开展时间', 
             dataIndex: 'fair_start_date', 
@@ -292,18 +321,41 @@ const AdminExhibitions: React.FC = () => {
             title: '操作',
             key: 'action',
             fixed: 'right' as const,
-            width: 180,
+            width: 250,
             render: (_: any, record: ExhibitionData) => (
                 <Space>
                     <Button 
                         type="link" 
                         size="small" 
+                        onClick={() => handleEdit(record)}
+                    >
+                        编辑
+                    </Button>
+                    <Button 
+                        type="link" 
+                        size="small" 
+                        onClick={() => {
+                            setEditingFair(record);
+                            setIsCrawlModalOpen(true);
+                        }}
+                    >
+                        配置爬虫
+                    </Button>
+                    <Button 
+                        type="link" 
+                        size="small" 
+                        className="text-green-600"
                         onClick={() => navigate(`/admin/exhibitions/${record.id}`)}
                     >
-                        查看详情
+                        查看展商
                     </Button>
-                    <Button type="link" size="small" onClick={() => handleEdit(record)}>编辑</Button>
-                    <Popconfirm title="确定删除吗?" onConfirm={() => handleDelete(record.id)}>
+                    
+                    <Popconfirm 
+                        title="确定删除吗?" 
+                        onConfirm={() => handleDelete(record.id)}
+                        okText="确定"
+                        cancelText="取消"
+                    >
                         <Button type="link" size="small" danger>删除</Button>
                     </Popconfirm>
                 </Space>
@@ -327,7 +379,7 @@ const AdminExhibitions: React.FC = () => {
             <Table 
                 loading={loading}
                 rowSelection={{ 
-                    onChange: (keys) => setSelectedIds(keys as number[]) 
+                    onChange: (keys) => setSelectedIds(keys as string[]) 
                 }}
                 dataSource={data} 
                 columns={columns} 
@@ -370,6 +422,7 @@ const AdminExhibitions: React.FC = () => {
                 industries={allIndustryFields}
                 eventFormats={eventFormats} // 传递数据源
                 frequencyTypes={frequencyTypes} // 🚀 传下去
+                fairStatusOptions={fairStatusOptions}
                 onCountryChange={loadProvinces}
                 onProvinceChange={loadCities}
             />
@@ -384,6 +437,12 @@ const AdminExhibitions: React.FC = () => {
                     setSelectedIds([]);
                     fetchData();
                 }}
+            />
+
+            <ExhibitionCrawlModal 
+                open={isCrawlModalOpen}
+                exhibition={editingFair}
+                onCancel={() => setIsCrawlModalOpen(false)}
             />
         </Card>
 

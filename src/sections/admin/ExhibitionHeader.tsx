@@ -7,7 +7,12 @@ import { getOrganizers } from '../../services/organizerService';
 interface ExhibitionHeaderProps {
   searchText: string;
   setSearchText: (val: string) => void;
-  onSearch: (params: { search_name?: string; organizer_id?: number; date_status?: string }) => void;
+  onSearch: (params: { 
+    search_name?: string; 
+    organizer_id?: number; 
+    date_status?: string;
+    fair_status?: string;
+  }) => void;
   history: string[];
   selectedCount: number;
   onAdd: () => void;
@@ -22,6 +27,7 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
   const [organizers, setOrganizers] = useState<Organizer[]>([]);
   const [selectedOrgId, setSelectedOrgId] = useState<number | undefined>();
   const [dateStatus, setDateStatus] = useState<string | undefined>();
+  const [fairStatus, setFairStatus] = useState<string | undefined>();
 
   const handleOrgSearch = async (value: string) => {
     if (value) {
@@ -29,8 +35,6 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
       setOrganizers(res.items);
     }
   };
-
-  
 
   const options = history.map(item => ({
     value: item,
@@ -46,7 +50,8 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
     onSearch({ 
       search_name: searchText, 
       organizer_id: selectedOrgId, 
-      date_status: dateStatus 
+      date_status: dateStatus,
+      fair_status: fairStatus
     });
   };
 
@@ -74,7 +79,7 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
               
               onSelect={(val) => {
                 setSearchText(val);
-                onSearch({ search_name: val, organizer_id: selectedOrgId, date_status: dateStatus });
+                onSearch({ search_name: val, organizer_id: selectedOrgId, date_status: dateStatus , fair_status: fairStatus});
               }}
              
             >
@@ -103,7 +108,7 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
           onSearch={handleOrgSearch}
           onChange={(val) => {
             setSelectedOrgId(val);
-            onSearch({ search_name: searchText, organizer_id: val, date_status: dateStatus });
+            onSearch({ search_name: searchText, organizer_id: val, date_status: dateStatus , fair_status: fairStatus});
           }}
         >
           {organizers.map(org => (
@@ -117,11 +122,37 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
             style={{ width: 120 }}
             onChange={(val) => {
               setDateStatus(val);
-              onSearch({ search_name: searchText, organizer_id: selectedOrgId, date_status: val });
+              onSearch({ 
+                search_name: searchText, 
+                organizer_id: selectedOrgId, 
+                date_status: val ,
+                fair_status: fairStatus });
             }}
           >
             <Select.Option value="ongoing">进行中</Select.Option>
             <Select.Option value="expired">已过期</Select.Option>
+            <Select.Option value="none">无日期</Select.Option>
+          </Select>
+
+          <Select
+            placeholder="展会状态"
+            allowClear
+            style={{ width: 120 }}
+            onChange={(val) => {
+              setFairStatus(val);
+              onSearch({ 
+                search_name: searchText, 
+                organizer_id: selectedOrgId, 
+                date_status: dateStatus,
+                fair_status: val 
+              });
+            }}
+          >
+            <Select.Option value="active">正常</Select.Option>
+            <Select.Option value="draft">草稿</Select.Option>
+            <Select.Option value="postponed">延期</Select.Option>
+            <Select.Option value="cancelled">取消</Select.Option>
+            <Select.Option value="ceased">停办</Select.Option>
           </Select>
 
         <div className="flex-1" />

@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import { getExhibitionDetail } from '../../services/exhibitionService';
 import { ExhibitionData } from '../../types';
 import { uploadExhibitorsExcel, uploadExhibitorsTxt } from '../../services/exhibitorService';
-import CrawlConfigForm from '../../components/admin/CrawlConfigForm';
+
 
 
 const { Title, Text } = Typography;
@@ -25,41 +25,6 @@ const ExhibitionDetailView: React.FC = () => {
 
     const navigate = useNavigate();
 
-    const tabItems = [
-    
-        {
-            key: 'crawl_list',
-            label: '采集配置-列表页',
-            children: (
-                <Card>
-                    <CrawlConfigForm 
-                        fairId={fairId || ''} 
-                        type="list" 
-                        initialDates={{
-                            start: exhibition?.fair_start_date || null,
-                            end: exhibition?.fair_end_date || null
-                        }}
-                    />
-                </Card>
-            ),
-        },
-        {
-            key: 'crawl_detail',
-            label: '采集配置-详情页',
-            children: (
-                <Card>
-                    <CrawlConfigForm 
-                        fairId={fairId || ''} 
-                        type="detail" 
-                        initialDates={{
-                            start: exhibition?.fair_start_date || null,
-                            end: exhibition?.fair_end_date || null
-                        }}
-                    />
-                </Card>
-            ),
-        },
-    ];
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -197,7 +162,6 @@ const ExhibitionDetailView: React.FC = () => {
             
             >
          
-                <Tabs defaultActiveKey="exhibitors" items={tabItems} />
             </Card>
         </Space>
 
