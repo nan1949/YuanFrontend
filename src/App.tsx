@@ -7,6 +7,7 @@ import AdminPavilions from './pages/admin/AdminPavilions';
 
 import AdminLayout from './layouts/AdminLayout';
 import MainLayout from './layouts/MainLayout';
+import { App as AntdApp } from 'antd';
 
 import HomePage from './pages/client/HomePage';
 import ExhibitionDetailPage from './pages/client/ExhibitionDetailPage';
@@ -46,8 +47,8 @@ const App: React.FC = () => {
     }, []); // 仅在组件首次挂载时执行
 
   return (
-    <>
-        <Router>
+    <Router>
+        <AntdApp>
             <AuthProvider>
                 <Routes>
                     <Route element={<MainLayout children={<Outlet />} />}>
@@ -86,12 +87,9 @@ const App: React.FC = () => {
                     } />
                     
                 </Routes>
-
-        
             </AuthProvider>
-        
-        </Router>
-    </>
+        </AntdApp>
+    </Router>
 
   );
 };

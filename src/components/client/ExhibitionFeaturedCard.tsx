@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ExhibitionData } from '../types';
+import { ExhibitionData } from '../../types';
 
 interface ExhibitionFeaturedCardProps {
   data: ExhibitionData;

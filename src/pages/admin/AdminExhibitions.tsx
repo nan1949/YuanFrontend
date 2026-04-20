@@ -19,6 +19,7 @@ import ExhibitionCrawlModal from '../../components/admin/ExhibitionCrawlModal';
 import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
 import * as industryService from '../../services/industryService';
 import { useRegionData } from '../../hooks/useRegionData';
+import useTitle from '../../hooks/useTitle';
 
 
 const statusMap: Record<string, { color: string, text: string }> = {
@@ -39,6 +40,7 @@ const fairStatusOptions = [
 
 
 const AdminExhibitions: React.FC = () => {
+    useTitle('展会管理中心-管理后台');
 
     const [data, setData] = useState<ExhibitionData[]>([]);
     const [total, setTotal] = useState(0);

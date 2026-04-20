@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getPavilions, type Pavilion } from '../services/pavilionService';
+import { getPavilions, type Pavilion } from '../../services/pavilionService';
 
 const PavilionList: React.FC = () => {
   const [pavilions, setPavilions] = useState<Pavilion[]>([]);

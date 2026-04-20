@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback  } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SearchResultCount from '../../components/SearchResultCount';
+import SearchResultCount from '../../components/client/SearchResultCount';
 import ExhibitionCard from '../../components/client/ExhibitionCard';
-import PaginationControls from '../../components/PaginationControls';
+import PaginationControls from '../../components/client/PaginationControls';
 import { ExhibitionData } from '../../types';
 import { getExhibitions } from '../../services/exhibitionService';
-import SearchBox from '../../components/SearchBox';
+import SearchBox from '../../components/client/SearchBox';
 import useTitle from '../../hooks/useTitle';
-import Container from '../../components/Container';
+import Container from '../../components/client/Container';
 
 const INITIAL_PAGE_SIZE = 10; 
 

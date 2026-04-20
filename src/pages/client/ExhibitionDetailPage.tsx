@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom';
 import { ExhibitionData } from '../../types';
 import { getExhibitionDetail } from '../../services/exhibitionService';
 import useTitle from '../../hooks/useTitle';
-import TabButton from '../../components/TabButton';
-import Container from '../../components/Container';
+import TabButton from '../../components/client/TabButton';
+import Container from '../../components/client/Container';
 import { useAuth } from '../../contexts/AuthContext';
 
 

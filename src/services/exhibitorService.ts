@@ -49,7 +49,7 @@ export const searchExhibitors = async (
     // 2. 使用 api 实例发送 POST 请求
     // 路径改为你后端定义的统一接口
     const response = await api.post<UnifiedExhibitorResponse>('/exhibitors/search', requestBody);
-    
+    console.log(response.data)
     return response.data;
 
   } catch (error: any) {
@@ -72,25 +72,32 @@ export const searchExhibitors = async (
 };
 
 
-export const uploadExhibitorsExcel = async (fairId: string, file: File): Promise<any> => {
+export interface ImportResponse {
+  status: string;
+  imported: number;
+  skipped_duplicate: number;
+  fair_id: string;
+  message?: string; // 兼容旧逻辑或异常信息
+}
+
+
+export const importExhibitors = async (
+  fairId: string, 
+  file?: File, 
+  jsonData?: string
+): Promise<ImportResponse> => {
     const formData = new FormData();
-    formData.append('file', file);
     formData.append('fair_id', fairId);
 
-    const response = await api.post('/exhibitors/upload-excel', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-    });
-    return response.data;
-};
+    if (file) {
+        formData.append('file', file);
+    }
 
-export const uploadExhibitorsTxt = async (fairId: string, file: File) => {
-    const formData = new FormData();
-    formData.append('fair_id', fairId);
-    formData.append('file', file);
+    if (jsonData) {
+        formData.append('data', jsonData);
+    }
     
-    const response = await api.post('/exhibitors/upload-txt', formData, {
+    const response = await api.post<ImportResponse>('/exhibitors/import', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;

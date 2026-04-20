@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, message, Spin, Tag, Space, Image, Tooltip, Button } from 'antd';
+import { Modal, Form, Input, Row, Col, DatePicker, Select, InputNumber, Spin, Tag, Space, Image, Tooltip, Button } from 'antd';
+import { App } from 'antd';
 import dayjs from 'dayjs';
 import { SyncOutlined } from '@ant-design/icons';
 import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
@@ -44,6 +45,9 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
     onProvinceChange
 }) => {
     const [form] = Form.useForm();
+
+    const { message: globalMessage } = App.useApp();
+
     const [loading, setLoading] = useState(false);
     const [startDateRef, setStartDateRef] = useState<dayjs.Dayjs | null>(null);
 
@@ -136,7 +140,7 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
             }));
             setOrganizerOptions(options);
         } catch (error) {
-            message.error('搜索主办方失败');
+            globalMessage.error('搜索主办方失败');
         } finally {
             setFetchingOrganizers(false);
         }
@@ -187,7 +191,7 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
 
             setPavilionOptions(options);
         } catch (error) {
-            message.error('搜索展馆失败');
+            globalMessage.error('搜索展馆失败');
         } finally {
             setFetchingPavilions(false);
         }
@@ -249,14 +253,15 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
             setLoading(true);
             if (editingFair) {
                 await updateExhibition(editingFair.id, submitData);
-                message.success('更新成功');
+                globalMessage.success('更新成功');
             } else {
                 await createExhibition(submitData);
-                message.success('新增成功');
+                globalMessage.success('新增成功');
             }
             onSuccess();
         } catch (error) {
             console.error('提交失败:', error);
+            globalMessage.error('表单校验失败或服务器错误');
         } finally {
             setLoading(false);
         }
@@ -265,14 +270,14 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
     const handleLocalizeImage = async (targetType: 'logo_url' | 'banner_url') => {
         // 校验：必须是编辑模式
         if (!editingFair?.id) {
-            return message.warning('请先创建并保存展会基本信息后，再进行图片转化');
+            return globalMessage.warning('请先创建并保存展会基本信息后，再进行图片转化');
         }
 
         const currentExternalUrl = form.getFieldValue(targetType);
         
         // 简单校验 URL 格式
         if (!currentExternalUrl || !currentExternalUrl.startsWith('http')) {
-            return message.error('请输入有效的外部图片 HTTP 链接');
+            return globalMessage.error('请输入有效的外部图片 HTTP 链接');
         }
 
         try {
@@ -284,10 +289,10 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
             form.setFieldsValue({
                 [targetType]: newUrl 
             });
-            message.success(`${targetType === 'logo_url' ? 'Logo' : 'Banner'} 同步成功`);
+            globalMessage.success(`${targetType === 'logo_url' ? 'Logo' : 'Banner'} 同步成功`);
         } catch (error: any) {
             console.error("同步失败:", error);
-            message.error(error.response?.data?.detail || '同步失败，请检查链接有效性');
+            globalMessage.error(error.response?.data?.detail || '同步失败，请检查链接有效性');
         } finally {
             setLoading(false);
         }

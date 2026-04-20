@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom'; 
 import { ExhibitionData } from '../../types';
 import { card2ndTitleClasses, cardClasses, cardRowClasses, cardTitleClasses } from '../../styles/tailwindStyles';
-import TagGroup from '../TagGroup';
+import TagGroup from './TagGroup';
 import { useAuth } from '../../contexts/AuthContext';
 
 

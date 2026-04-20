@@ -1,129 +1,121 @@
 import React, {useMemo} from 'react';
 import { Link } from 'react-router-dom';
-import { ExhibitorData } from '../../types'; 
-import { card2ndTitleClasses, cardClasses, cardRowClasses, cardTitleClasses } from '../../styles/tailwindStyles';
-import TagGroup from '../TagGroup';
+import {  cardClasses, cardTitleClasses } from '../../styles/tailwindStyles';
+import TagGroup from './TagGroup';
+import { InfoCircleOutlined } from '@ant-design/icons'; 
+import { Tooltip } from 'antd'; 
 
-interface InfoItemProps {
-  label: string;
-  value: string;
+
+interface CompanyCardProps {
+  data: {
+    id: string;
+    company_name: string;
+    company_name_trans?: string;
+    country?: string;
+    province?: string;
+    city?: string;
+    website?: string;
+    exhibitor_count?: number;
+    exhibitor_countries?: string[]; // 已通过 ES Pipeline 拆分为数组
+    introduction?: string;
+  };
 }
 
-const InfoItem: React.FC<InfoItemProps> = ({ label, value }) => {
 
-  const placeholder = '—'; 
+const CompanyCard: React.FC<CompanyCardProps> = ({ data }) => {
 
-  const displayValue = value ? value : placeholder;
-
-  const titleText = value ? value : 'N/A';
-
-  return (
-    <div className="flex items-center">
-
-      <span className="text-gray-400 flex-shrink-0">
-        {label}：
-      </span>
-
-      <span 
-        className="text-gray-600 truncate" 
-        title={titleText}
-      >
-        {displayValue}
-      </span>
-    </div>
-  );
-};
-
-
-const CompanyCard: React.FC<{ data: ExhibitorData }> = ({ data }) => {
-
-    const locationString = [data.country, data.province, data.city].filter(Boolean).join(', ') || '—';
+    const locationString = useMemo(() => {
+        const parts = [data.country, data.province, data.city].filter(Boolean);
+        return parts.length > 0 ? parts.join(' · ') : '—';
+    }, [data.country, data.province, data.city]);
   
-    const detailPath = `/exhibitors/${data.id}`;
-
-    const mainTitle = data.company_name || data.exhibitor_name || '未知企业';
-    const showSubTitle = 
-        data.company_name && 
-        data.exhibitor_name && 
-        data.company_name.trim() !== data.exhibitor_name.trim();
-
-    const recentFairInfo = useMemo(() => {
-        if (!data.fair_name) return null;
-        // 格式化日期：只取 YYYY-MM-DD
-        const datePart = data.fair_start_date ? data.fair_start_date.split('T')[0] : '';
-        return `${datePart} ${data.fair_name}`;
-    }, [data.fair_name, data.fair_start_date]);
-
-    const uniqueTargetCountries = useMemo(() => {
-        if (!data || !data.target_countries || data.target_countries.length === 0) {
-            return [];
-        }
-        const uniqueCountries = [...new Set(data.target_countries)];
-        
-        return uniqueCountries;
-    }, [data.target_countries]); // 关键：依赖于 expo_info 数组的变化
+    const detailPath = `/companies/${data.id}`;
   
   return (
+    <div className={`${cardClasses} hover:bg-gray-50 transition-colors py-4`}>
+      <div className="flex flex-wrap items-start justify-between gap-x-4">
+        <div className="flex-1 min-w-[300px]">
+          {/* 企业名称 */}
+          <Link 
+            to={detailPath} 
+            className={`${cardTitleClasses} block truncate hover:text-blue-600`}
+            title={data.company_name}
+          >
+            {data.company_name || '未知企业'}
+          </Link>
 
-    <div className={cardClasses}>
-      
-            <Link 
-                to={detailPath} 
-                className={cardTitleClasses}
-                title={mainTitle}
-            >
-                {mainTitle}
-            </Link>
+          {/* 企业英文名 */}
+          {data.company_name_trans && (
+            <div className="text-sm text-gray-400 mt-0.5 truncate italic">
+              {data.company_name_trans}
+            </div>
+          )}
+        </div>
 
-            {showSubTitle && (
-                <div className={card2ndTitleClasses}>
-                    {data.exhibitor_name}
+        <div className="flex items-center gap-3 mt-1 sm:mt-0">
+            {/* 足迹标签：紧跟在次数前面，节省纵向空间 */}
+            {data.exhibitor_countries && data.exhibitor_countries.length > 0 && (
+                <div className="flex items-center">
+                <span className="text-[11px] text-gray-400 mr-2 shrink-0">足迹:</span>
+                <TagGroup
+                    tags={data.exhibitor_countries}
+                    limit={3} // 列表页仅展示核心的前3个，避免撑开高度
+                />
                 </div>
             )}
-
-            <TagGroup
-                tags={uniqueTargetCountries}
-                limit={10}
-            />
-
-            {recentFairInfo && (
-                <div className="mt-2 mb-1 flex items-center text-sm">
-                    <span className="px-2 py-0.5 bg-orange-50 text-orange-600 rounded text-xs mr-2 font-medium border border-orange-100 shrink-0">
-                        近期参展
-                    </span>
-                    <span className="text-gray-500 truncate italic">
-                        {recentFairInfo}
-                    </span>
-                </div>
-            )}
-
-            <div className={cardRowClasses}>
-                <InfoItem 
-                    label='所在地'
-                    value={locationString}
-                />
-            </div>
-
-            <div className={cardRowClasses}>
-          
-                <InfoItem 
-                    label='官网'
-                    value={data.website}
-                />
-                
-            </div>
-
-            {data.intro && (
-            <div className="flex text-gray-600 text-sm">
-     
-                <span className="text-gray-400 flex-shrink-0">介绍：</span>
-                <span className="line-clamp-2 min-w-0">
-                    {data.intro}
+            
+            {/* 累计参展次数 */}
+            <div className="flex items-center px-2 py-1 bg-blue-50 rounded border border-blue-100 shrink-0">
+                <span className="text-blue-400 text-[11px] mr-1.5 font-medium">累计参展</span>
+                <span className="text-blue-600 font-bold text-base leading-none mr-1">
+                    {data.exhibitor_count || 0}
                 </span>
+
+                <Tooltip title="注：该数值仅基于本站收录的展会数据统计，可能与企业实际参展次数存在偏差。" placement="topRight"
+                    color="white" // 设置气泡背景为白色
+                    overlayInnerStyle={{ color: '#000', fontSize: '14px' }} // 强制内部文字为黑色
+                >
+                    <InfoCircleOutlined className="text-gray-400 text-sm hover:text-gray-600 transition-colors ml-1" />
+                </Tooltip>
             </div>
-            )}
-   
+           
+        </div>
+      </div>
+
+      {/* 核心字段：所在地 & 官网 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 mt-4 mb-3">
+        <div className="flex items-center text-sm">
+          <span className="text-gray-400 flex-shrink-0">所在地：</span>
+          <span className="text-gray-600 truncate">{locationString}</span>
+        </div>
+        <div className="flex items-center text-sm">
+          <span className="text-gray-400 flex-shrink-0">官网：</span>
+          {data.website ? (
+            <a 
+              href={data.website.startsWith('http') ? data.website : `http://${data.website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline truncate"
+            >
+              {data.website.replace(/^https?:\/\//, '')}
+            </a>
+          ) : (
+            <span className="text-gray-300">—</span>
+          )}
+        </div>
+      </div>
+
+      {/* 企业简介 */}
+      {data.introduction && (
+        <div className="mt-3 flex text-sm border-t border-gray-50 pt-2">
+          <span className="text-gray-400 flex-shrink-0">简介：</span>
+          <span className="text-gray-500 line-clamp-2 leading-relaxed">
+            {data.introduction}
+          </span>
+        </div>
+      )}
     </div>
+    
   );
 };
 

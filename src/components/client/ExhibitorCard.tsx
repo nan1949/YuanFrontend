@@ -1,6 +1,6 @@
 // components/ExhibitorRow.tsx
 import React from 'react';
-import { ExhibitorData } from '../types'; // 导入更新后的类型
+import { ExhibitorData } from '../../types'; // 导入更新后的类型
 
 interface ExhibitorRowProps {
     data: ExhibitorData;

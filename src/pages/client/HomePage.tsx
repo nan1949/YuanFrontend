@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import useTitle from '../../hooks/useTitle';
-import Container from '../../components/Container';
+import Container from '../../components/client/Container';
 import { Link } from 'react-router-dom'; 
 import { ExhibitionData } from '../../types';
-import ExhibitionFeaturedCard from '../../components/ExhibitionFeaturedCard';
+import ExhibitionFeaturedCard from '../../components/client/ExhibitionFeaturedCard';
 import { getExhibitions } from '../../services/exhibitionService';
 import { getRecentDynamics } from '../../services/exhibitorService';
 import { RecentDynamic } from '../../services/exhibitorService';

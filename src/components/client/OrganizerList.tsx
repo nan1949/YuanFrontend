@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getOrganizers, type Organizer } from '../services/organizerService';
+import { getOrganizers, type Organizer } from '../../services/organizerService';
 
 const OrganizerList: React.FC = () => {
   const [organizers, setOrganizers] = useState<Organizer[]>([]);

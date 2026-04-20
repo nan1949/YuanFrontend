@@ -1,20 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Descriptions, Button, Tag, Space, Divider, Typography, Skeleton, message, Upload, Tabs } from 'antd';
-import { ArrowLeftOutlined, GlobalOutlined, CalendarOutlined, UploadOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Card, Descriptions, Button, Tag, Space, Divider, Typography, Skeleton, message, Upload} from 'antd';
+import { ArrowLeftOutlined, GlobalOutlined, CalendarOutlined, UploadOutlined } from '@ant-design/icons';
 
 import dayjs from 'dayjs';
 import { getExhibitionDetail } from '../../services/exhibitionService';
 import { ExhibitionData } from '../../types';
-import { uploadExhibitorsExcel, uploadExhibitorsTxt } from '../../services/exhibitorService';
-
+import { importExhibitors } from '../../services/exhibitorService';
 
 
 const { Title, Text } = Typography;
 
 const ExhibitionDetailView: React.FC = () => {
+    const [messageApi, contextHolder] = message.useMessage();
     const { id } = useParams<{ id: string }>();
-    const fairId = id;
 
     const [loading, setLoading] = useState(true);
     const [exhibition, setExhibition] = useState<ExhibitionData | null>(null);
@@ -41,43 +40,28 @@ const ExhibitionDetailView: React.FC = () => {
         fetchDetail();
     }, [id]);
 
-    const handleUpload = async (file: File) => {
+   
+    const handleFileUpload = async (file: File) => {
         if (!id) return;
         setUploading(true);
         try {
-            const res = await uploadExhibitorsExcel(id, file);
-            message.success(res.message || '上传成功');
-            // 上传成功后，调用展商列表子组件的刷新方法
+            const res = await importExhibitors(id, file);
+            messageApi.success({
+                content: `导入完成！成功写入 ${res.imported} 条，跳过重复 ${res.skipped_duplicate} 条。`,
+                duration: 5,
+            });
             exhibitorsRef.current?.fetchData();
         } catch (error: any) {
             const detail = error.response?.data?.detail;
-
             const errorMsg = typeof detail === 'string' 
-            ? detail 
-            : (detail?.message || '上传失败：数据格式校验不通过');
+                ? detail 
+                : (detail?.message || '导入失败: 网络或服务器异常');
 
-            message.error(errorMsg);
-            if (detail?.errors) {
-            console.table(detail.errors);
-        }
+            messageApi.error(errorMsg);
         } finally {
             setUploading(false);
         }
-        return false; // 返回 false 阻止 antd 自动上传
-    };
-
-    const handleTxtUpload = async (file: File) => {
-        if (!id) return;
-        setUploading(true);
-        try {
-            const res = await uploadExhibitorsTxt(id, file);
-            message.success(res.message);
-            exhibitorsRef.current?.fetchData();
-        } catch (error: any) {
-            message.error(error.response?.data?.detail || '解析上传失败');
-        } finally {
-            setUploading(false);
-        }
+        return false;
     };
 
     if (loading) return <Skeleton active />;
@@ -132,36 +116,23 @@ const ExhibitionDetailView: React.FC = () => {
                 title="参展商名录"
                 extra={
                     <Space>
+                        {contextHolder}
                         <Upload 
-                            accept=".xlsx, .xls"
+                            accept=".xlsx, .xls, .txt, .json, .html"
                             showUploadList={false}
-                            beforeUpload={handleUpload}
+                            beforeUpload={handleFileUpload}
                         >
                             <Button 
                                 icon={<UploadOutlined />} 
                                 loading={uploading}
                             >
-                                批量导入展商excel
-                            </Button>
-                        </Upload>
-
-                        <Upload
-                            accept=".txt,.json,.html"
-                            beforeUpload={(file) => {
-                                handleTxtUpload(file);
-                                return false;
-                            }}
-                            showUploadList={false}
-                        >
-                            <Button icon={<FileTextOutlined />} loading={uploading}>
-                                上传源码(TXT/JSON)
+                                批量导入展商 (Excel/源码)
                             </Button>
                         </Upload>
                     </Space>
                 }
             
             >
-         
             </Card>
         </Space>
 

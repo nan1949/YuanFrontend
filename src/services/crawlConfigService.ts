@@ -60,7 +60,8 @@ export const createCrawlConfig = async (data: CrawlConfigData) => {
     return res.data;
 };
 
-export const updateCrawlConfig = async (fairId: string, contentType: CrawlContentType, data: Partial<CrawlConfigData>) => {
-    const res = await api.put(`/crawl-configs/${fairId}?content_type=${contentType}`, data);
+export const updateCrawlConfig = async (data: Partial<CrawlConfigData>) => {
+    const { fair_id, content_type } = data;
+    const res = await api.put(`/crawl-configs/${fair_id}?content_type=${content_type}`, data);
     return res.data;
 };
