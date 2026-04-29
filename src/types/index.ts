@@ -15,6 +15,11 @@ export interface FrequencyType {
     en: string;
 }
 
+export interface ExhibitorVersion {
+  edition: string;  // 版本日期/届份
+  count: number;    // 展商人数
+}
+
 
 export interface ExhibitionData {
   id: string;
@@ -50,8 +55,9 @@ export interface ExhibitionData {
   banner_url?: string;
 
   // 新增字段
-  exhibitor_edition?: string; // 最新展商日期/届份
-  exhibitor_count?: number;   // 展商人数
+  // exhibitor_edition?: string; // 最新展商日期/届份
+  // exhibitor_count?: number;   // 展商人数
+  exhibitor_versions: ExhibitorVersion[];
 }
 
 

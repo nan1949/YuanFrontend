@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, Button, message, Space, Popconfirm, Card, Tag
-} from 'antd';
+import { Table, Button, message, Space, Popconfirm, Card, Tag, Popover, List } from 'antd';
 import dayjs from 'dayjs';
 import { 
     getExhibitions, 
@@ -14,9 +13,8 @@ import {
 import ExhibitionHeader from '../../sections/admin/ExhibitionHeader';
 import ExhibitionEditModal from '../../components/admin/ExhibitionEditModal';
 import ExhibitionMergeModal from '../../components/admin/ExhibitionMergeModal';
-import ExhibitionSeriesModal from '../../components/admin/ExhibitionSeriesModal';
 import ExhibitionCrawlModal from '../../components/admin/ExhibitionCrawlModal';
-import { ExhibitionData, EventFormat, FrequencyType } from '../../types';
+import { ExhibitionData, EventFormat, FrequencyType, ExhibitorVersion } from '../../types';
 import * as industryService from '../../services/industryService';
 import { useRegionData } from '../../hooks/useRegionData';
 import useTitle from '../../hooks/useTitle';
@@ -202,13 +200,6 @@ const AdminExhibitions: React.FC = () => {
         setIsMergeModalOpen(true);
     };
 
-    const handleOpenSeriesModal = () => {
-        if (selectedIds.length === 0) {
-            return message.warning('请先选择要归类的展会');
-        }
-
-        setIsSeriesModalOpen(true);
-    };
 
     // 处理分页、排序变化
     const handleTableChange = (paginationInfo: any, filters: any, sorter: any) => {
@@ -294,31 +285,53 @@ const AdminExhibitions: React.FC = () => {
             }
         },
         { 
-            title: '最新展商', 
-            dataIndex: 'exhibitor_edition', 
-            width: 120,
-            render: (text: string) => {
-                if (!text) return '-';
-                const date = dayjs(text);
-                const isOld = date.isBefore(dayjs().subtract(1, 'year')); // 假设一年前的数据算旧数据
+            title: '展商版本 (历届)', 
+            dataIndex: 'exhibitor_versions', 
+            width: 180,
+            render: (versions: ExhibitorVersion[]) => {
+                if (!versions || versions.length === 0) return '-';
+
+                // 取最新的一个版本用于外层展示
+                const latest = versions[0];
+                const date = dayjs(latest.edition);
+                const isOld = date.isBefore(dayjs().subtract(1, 'year'));
+
+                // 气泡卡片内容：展示所有版本详情
+                const content = (
+                    <List
+                        size="small"
+                        dataSource={versions}
+                        renderItem={(item) => (
+                            <List.Item>
+                                <span className="text-gray-500 mr-4">{item.edition}</span>
+                                <span className="font-bold text-blue-600">{item.count} 人</span>
+                            </List.Item>
+                        )}
+                    />
+                );
+
                 return (
-                    <span style={{ 
-                        whiteSpace: 'nowrap',
-                        color: isOld ? '#ff4d4f' : '#1890ff', // 旧数据红色警告，新数据蓝色
-                        fontWeight: isOld ? 'normal' : '500'
-                    }}>
-                        {date.format('YYYY-MM-DD')}
-                        {isOld && <span style={{ fontSize: '10px', marginLeft: '4px' }}>(旧)</span>}
-                    </span>
+                    <Popover content={content} title="历届展商数据" trigger="hover">
+                        <div style={{ cursor: 'pointer' }}>
+                            <Tag color={isOld ? 'default' : 'blue'} style={{ marginBottom: 4 }}>
+                                {latest.edition} : <strong>{latest.count}</strong>人
+                            </Tag>
+                            {versions.length > 1 && (
+                                <div className="text-gray-400 text-xs">
+                                    更多 {versions.length - 1} 个版本...
+                                </div>
+                            )}
+                        </div>
+                    </Popover>
                 );
             }
         },
-        { 
-            title: '人数', 
-            dataIndex: 'exhibitor_count', 
-            width: 80,
-            render: (val: number) => <span className="text-blue-600 font-bold">{val || 0}</span>
-        },
+        // { 
+        //     title: '人数', 
+        //     dataIndex: 'exhibitor_count', 
+        //     width: 80,
+        //     render: (val: number) => <span className="text-blue-600 font-bold">{val || 0}</span>
+        // },
         {
             title: '操作',
             key: 'action',
@@ -375,7 +388,6 @@ const AdminExhibitions: React.FC = () => {
                 selectedCount={selectedIds.length}
                 onAdd={showCreateModal}
                 onMerge={handleMergeButtonClick}
-                onSeries={handleOpenSeriesModal}
             />
     
             <Table 
@@ -427,18 +439,6 @@ const AdminExhibitions: React.FC = () => {
                 fairStatusOptions={fairStatusOptions}
                 onCountryChange={loadProvinces}
                 onProvinceChange={loadCities}
-            />
-
-            <ExhibitionSeriesModal 
-                open={isSeriesModalOpen}
-                selectedIds={selectedIds}
-                selectedExhibitions={data.filter(f => selectedIds.includes(f.id))}
-                onCancel={() => setIsSeriesModalOpen(false)}
-                onSuccess={() => {
-                    setIsSeriesModalOpen(false);
-                    setSelectedIds([]);
-                    fetchData();
-                }}
             />
 
             <ExhibitionCrawlModal 

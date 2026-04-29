@@ -82,16 +82,6 @@ export const mergeExhibitions = async (keepId: number, duplicateIds: number[]): 
     return response.data;
 };
 
-
-export const categorizeExhibitionSeries = async (fairIds: string[], seriesName: string) => {
-    const response = await api.post(`/exhibitions/categorize-series`, {
-        fair_ids: fairIds,
-        custom_series_name: seriesName
-    });
-    return response.data;
-};
-
-
 export const getSearchHistory = async (): Promise<string[]> => {
     const res = await api.get('/search-history');
     return res.data;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Descriptions, Button, Tag, Space, Divider, Typography, Skeleton, message, Upload} from 'antd';
+import { Card, Descriptions, Button, Tag, Space, Divider, Typography, Skeleton, message, Upload, Table, // 新增 Table 导入用于展示版本列表
+    List} from 'antd';
 import { ArrowLeftOutlined, GlobalOutlined, CalendarOutlined, UploadOutlined } from '@ant-design/icons';
 
 import dayjs from 'dayjs';
@@ -10,6 +11,21 @@ import { importExhibitors } from '../../services/exhibitorService';
 
 
 const { Title, Text } = Typography;
+
+const versionColumns = [
+    {
+        title: '届份/开始日期',
+        dataIndex: 'edition',
+        key: 'edition',
+        render: (text: string) => <Text strong>{text}</Text>
+    },
+    {
+        title: '展商数量',
+        dataIndex: 'count',
+        key: 'count',
+        render: (count: number) => <Text type="danger">{count.toLocaleString()} 家</Text>
+    }
+];
 
 const ExhibitionDetailView: React.FC = () => {
     const [messageApi, contextHolder] = message.useMessage();
@@ -105,10 +121,18 @@ const ExhibitionDetailView: React.FC = () => {
                     <Descriptions.Item label="行业领域">
                         {exhibition.industry_field?.map(tag => <Tag key={tag}>{tag}</Tag>)}
                     </Descriptions.Item>
-                    <Descriptions.Item label="展商数量">
-                        <Typography.Text strong type="danger">{exhibition.exhibitor_count || 0}</Typography.Text> 位已入驻
-                    </Descriptions.Item>
+                
                 </Descriptions>
+            </Card>
+
+            <Card title="历届展商规模统计" extra={<Text type="secondary">共 {exhibition.exhibitor_versions?.length || 0} 个历史版本</Text>}>
+                <Table 
+                    dataSource={exhibition.exhibitor_versions} 
+                    columns={versionColumns} 
+                    pagination={{ pageSize: 5 }} // 如果版本多，支持分页
+                    rowKey="edition"
+                    size="small"
+                />
             </Card>
 
             {/* 下钻部分：该展会的展商列表 */}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Input, Button, Space, AutoComplete, Divider, Select } from 'antd';
-import { PlusOutlined, MergeCellsOutlined, ApartmentOutlined, SearchOutlined } from '@ant-design/icons';
+import { Input, Button, Space, AutoComplete, Select } from 'antd';
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { Organizer } from '../../types';
 import { getOrganizers } from '../../services/organizerService';
 
@@ -17,7 +17,6 @@ interface ExhibitionHeaderProps {
   selectedCount: number;
   onAdd: () => void;
   onMerge: () => void;
-  onSeries: () => void;
 }
 
 const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
@@ -103,7 +102,7 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
           showSearch
           placeholder="筛选主办方"
           allowClear
-          style={{ width: 200 }}
+          style={{ width: 300 }}
           filterOption={false}
           onSearch={handleOrgSearch}
           onChange={(val) => {
@@ -159,25 +158,6 @@ const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
     
    
         <Space>
-          {/* 归为系列：至少选中 1 项 */}
-          <Button 
-            icon={<ApartmentOutlined />} 
-            onClick={props.onSeries}
-            disabled={selectedCount === 0}
-          >
-            归为系列 {selectedCount > 0 && `(${selectedCount})`}
-          </Button>
-
-          {/* 合并操作：通常至少需要选中 2 项才能合并 */}
-          <Button 
-            icon={<MergeCellsOutlined />} 
-            onClick={props.onMerge}
-            disabled={selectedCount < 2}
-          >
-            合并选中
-          </Button>
-
-          <Divider type="vertical" className="h-6" />
 
           {/* 新增按钮：始终可用 */}
           <Button 
