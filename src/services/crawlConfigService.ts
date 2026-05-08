@@ -41,6 +41,7 @@ export interface CrawlConfigData {
     xpath_city?: string;
     xpath_address?: string;
     xpath_zip?: string;
+    xpath_end_cursor?: string;
     fair_start_date: string;
     fair_end_date: string;
     xpath_logo_url?: string;

@@ -81,7 +81,7 @@ const CrawlConfigForm: React.FC<CrawlConfigFormProps> = ({ form, exhibition, onS
                 <Row gutter={16}>
                     <Col span={4}>
                         <Form.Item name="pager_type" label="翻页类型">
-                            <Select options={[{value:'params'}, {value:'form_data'}, {value:'url.page'}]} />
+                            <Select options={[{value:'params'}, {value:'form_data'}, {value:'url.page'}, {value: "cursor"}]} />
                         </Form.Item>
                     </Col>
                     <Col span={4}>
@@ -96,6 +96,11 @@ const CrawlConfigForm: React.FC<CrawlConfigFormProps> = ({ form, exhibition, onS
                     <Col span={4}>
                         <Form.Item name="total_page" label="总页数"><InputNumber style={{width:'100%'}} /></Form.Item>
                     </Col>
+                </Row>
+                <Row gutter={16}>
+
+                    <Col span={6}><Form.Item name="xpath_end_cursor" label="详情结果cursor位置"><Input /></Form.Item></Col>
+              
                 </Row>
                 <Row gutter={16}>
                     <Col span={8}>
@@ -123,7 +128,12 @@ const CrawlConfigForm: React.FC<CrawlConfigFormProps> = ({ form, exhibition, onS
                     <Col span={6}><Form.Item name="xpath_objs" label="对象容器 XPath (必需)"><Input style={{borderColor: '#1890ff'}} /></Form.Item></Col>
                     <Col span={6}><Form.Item name="xpath_exhibitor_name" label="展商名称 XPath"><Input /></Form.Item></Col>
                     <Col span={6}><Form.Item name="xpath_company_name" label="公司名称 XPath"><Input /></Form.Item></Col>
+                    
+                </Row>
+
+                <Row gutter={16}>
                     <Col span={6}><Form.Item name="xpath_detail_url" label="详情页 URL XPath"><Input /></Form.Item></Col>
+                    <Col span={6}><Form.Item name="xpath_detail_id" label="详情页 id XPath"><Input /></Form.Item></Col>
                 </Row>
                 
                 <Row gutter={16}>
