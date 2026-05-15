@@ -6,7 +6,7 @@ import axios from 'axios'; // 确保 axios 已安装并可用
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const RegisterPage: React.FC = () => {
-    const [email, setEmail] = useState<string>('');
+    const [mobile, setMobile] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [fullName, setFullName] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
@@ -24,7 +24,7 @@ const RegisterPage: React.FC = () => {
         try {
             // 构造请求体，与后端 FastAPI 接口期望的 Pydantic 模型匹配
             const userData = {
-                email: email,
+                mobile: mobile,
                 password: password,
                 full_name: fullName, // 注意这里的字段名与后端匹配
             };
@@ -46,7 +46,7 @@ const RegisterPage: React.FC = () => {
             if (axios.isAxiosError(err) && err.response) {
                 // 处理后端返回的 HTTP 错误（如 400 Bad Request, 409 Conflict）
                 if (err.response.status === 409) {
-                    message = '该邮箱已被注册，请直接登录或更换邮箱。';
+                    message = '该手机号已被注册，请直接登录或更换手机号。';
                 } else if (err.response.data && err.response.data.detail) {
                     message = err.response.data.detail;
                 }
@@ -77,18 +77,18 @@ const RegisterPage: React.FC = () => {
 
                 <form className="space-y-6" onSubmit={handleSubmit}>
                     
-                    {/* 邮箱输入框 */}
+                    {/* 手机号输入框 */}
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">邮箱地址</label>
+                        <label htmlFor="mobile" className="block text-sm font-medium text-gray-700">手机号</label>
                         <input
-                            id="email"
-                            name="email"
-                            type="email"
+                            id="mobile"
+                            name="mobile"
+                            type="tel"
                             required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            value={mobile}
+                            onChange={(e) => setMobile(e.target.value)}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                            placeholder="请输入您的邮箱"
+                            placeholder="请输入您的手机号"
                         />
                     </div>
                     

@@ -252,7 +252,7 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
             };
             setLoading(true);
             if (editingFair) {
-                await updateExhibition(editingFair.id, submitData);
+                await updateExhibition(editingFair.slug, submitData);
                 globalMessage.success('更新成功');
             } else {
                 await createExhibition(submitData);
@@ -282,7 +282,7 @@ const ExhibitionEditModal: React.FC<ExhibitionEditModalProps> = ({
 
         try {
             setLoading(true);
-            const updatedFair = await localizeExhibitionImage(editingFair.id, currentExternalUrl, targetType);
+            const updatedFair = await localizeExhibitionImage(editingFair.slug, currentExternalUrl, targetType);
             
             const newUrl = updatedFair[targetType]; 
         

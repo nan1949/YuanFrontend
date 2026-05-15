@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
-    const [email, setEmail] = useState<string>('');
+    const [mobile, setMobile] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -19,7 +19,7 @@ const LoginPage: React.FC = () => {
         setIsLoading(true);
         
         try {
-            await login({ email, password });
+            await login({ mobile, password });
             
             // 登录成功后跳转到首页
             navigate('/'); 
@@ -47,23 +47,23 @@ const LoginPage: React.FC = () => {
 
                 <form className="space-y-6" onSubmit={handleSubmit}>
                     
-                    {/* 邮箱输入框 */}
+                    {/* 手机号输入框 */}
                     <div>
                         <label 
-                            htmlFor="email" 
+                            htmlFor="mobile" 
                             className="block text-sm font-medium text-gray-700"
                         >
-                            邮箱地址
+                            手机号
                         </label>
                         <input
-                            id="email"
-                            name="email"
-                            type="email"
+                            id="mobile"
+                            name="mobile"
+                            type="tel"
                             required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            value={mobile}
+                            onChange={(e) => setMobile(e.target.value)}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                            placeholder="请输入您的邮箱"
+                            placeholder="请输入您的手机号"
                         />
                     </div>
 

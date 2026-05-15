@@ -23,6 +23,7 @@ export interface ExhibitorVersion {
 
 export interface ExhibitionData {
   id: string;
+  slug: string;
   fair_name: string;
   fair_name_trans: string;
   fair_series_id: number;

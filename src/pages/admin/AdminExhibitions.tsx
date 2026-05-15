@@ -21,10 +21,10 @@ import useTitle from '../../hooks/useTitle';
 
 
 const statusMap: Record<string, { color: string, text: string }> = {
-    active: { color: 'green', text: '正常' },
-    draft: { color: 'default', text: '草稿' },
-    postponed: { color: 'orange', text: '延期' },
-    cancelled: { color: 'red', text: '取消' },
+    active: { color: 'success', text: '正常' },    // 统一用 success (绿色)
+    draft: { color: 'default', text: '草稿' },     // 统一用 default (灰色)
+    postponed: { color: 'warning', text: '延期' }, // 统一用 warning (橘色)
+    cancelled: { color: 'error', text: '取消' },   // 统一用 error (红色)
     ceased: { color: 'magenta', text: '停办' },
 };
 
@@ -68,8 +68,6 @@ const AdminExhibitions: React.FC = () => {
     const { countries, provinces, cities, loadCountries, loadProvinces, loadCities } = useRegionData();
 
     const [allIndustryFields, setAllIndustryFields] = useState<string[]>([]);
-
-    const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
 
     const [sortConfig, setSortConfig] = useState<{
         columnKey: 'country' | 'fair_start_date' | null,
@@ -255,8 +253,14 @@ const AdminExhibitions: React.FC = () => {
             dataIndex: 'fair_status',
             width: 100,
             render: (status: string) => {
-                const config = statusMap[status] || { color: 'blue', text: status || '未知' };
-                return <Tag color={config.color}>{config.text}</Tag>;
+                const config = statusMap[status] || { color: 'default', text: status || '未知' };
+                return (
+                    <Tag 
+                        color={config.color}
+                        style={{ minWidth: '60px', textAlign: 'center', borderRadius: '4px', padding: '2px 0' }}
+                    >{config.text}
+                    </Tag>
+                );
             }
         },
         { 
@@ -268,19 +272,18 @@ const AdminExhibitions: React.FC = () => {
                 if (!text) return '-';
                 const date = dayjs(text);
                 const isPast = date.isBefore(dayjs(), 'day');
+
                 return (
-                    <span style={{ 
-                        whiteSpace: 'nowrap', 
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        fontSize: '13px',
-                        // 过期用灰色背景，未过期用绿色字体
-                        backgroundColor: isPast ? '#f5f5f5' : '#f6ffed',
-                        color: isPast ? '#8c8c8c' : '#52c41a',
-                        border: isPast ? '1px solid #d9d9d9' : '1px solid #b7eb8f'
-                    }}>
+                    <Tag 
+                        color={isPast ? 'default' : 'success'} 
+                        style={{ 
+                            padding: '2px 8px', 
+                            fontSize: '13px',
+                            borderRadius: '4px' 
+                        }}
+                    >
                         {date.format('YYYY-MM-DD')}
-                    </span>
+                    </Tag>
                 );
             }
         },
@@ -304,7 +307,7 @@ const AdminExhibitions: React.FC = () => {
                         renderItem={(item) => (
                             <List.Item>
                                 <span className="text-gray-500 mr-4">{item.edition}</span>
-                                <span className="font-bold text-blue-600">{item.count} 人</span>
+                                <span className="font-bold text-blue-600">{item.count} 家</span>
                             </List.Item>
                         )}
                     />
@@ -313,12 +316,19 @@ const AdminExhibitions: React.FC = () => {
                 return (
                     <Popover content={content} title="历届展商数据" trigger="hover">
                         <div style={{ cursor: 'pointer' }}>
-                            <Tag color={isOld ? 'default' : 'blue'} style={{ marginBottom: 4 }}>
-                                {latest.edition} : <strong>{latest.count}</strong>人
+                            <Tag 
+                                color={isOld ? 'default' : 'blue'} 
+                                style={{ 
+                                    marginBottom: 0, // 移除间距使其水平居中感更好
+                                    padding: '2px 8px',
+                                    fontSize: '13px'
+                                }}
+                            >
+                                {latest.edition} : <strong style={{ marginLeft: 4 }}>{latest.count}</strong>家
                             </Tag>
                             {versions.length > 1 && (
-                                <div className="text-gray-400 text-xs">
-                                    更多 {versions.length - 1} 个版本...
+                                <div className="text-gray-400" style={{ fontSize: '11px', marginTop: '2px', marginLeft: '4px' }}>
+                                    更多 {versions.length - 1} 个年份
                                 </div>
                             )}
                         </div>
@@ -360,14 +370,14 @@ const AdminExhibitions: React.FC = () => {
                         type="link" 
                         size="small" 
                         className="text-green-600"
-                        onClick={() => navigate(`/admin/exhibitions/${record.id}`)}
+                        onClick={() => navigate(`/admin/exhibitions/${record.slug}`)}
                     >
                         查看展商
                     </Button>
                     
                     <Popconfirm 
                         title="确定删除吗?" 
-                        onConfirm={() => handleDelete(record.id)}
+                        onConfirm={() => handleDelete(record.slug)}
                         okText="确定"
                         cancelText="取消"
                     >

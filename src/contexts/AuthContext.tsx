@@ -13,7 +13,7 @@ interface User {
 }
 
 interface LoginPayload {
-    email: string;
+    mobile: string;
     password: string;
 }
 
@@ -70,10 +70,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     }, []);
     
-    const login = async ({ email, password }: LoginPayload) => {
+    const login = async ({ mobile, password }: LoginPayload) => {
     
         const formData = new FormData();
-        formData.append('username', email); // 对应 OAuth2 form 的 username
+        formData.append('username', mobile); // 登录账号已切换为手机号，后端仍使用 username 字段接收
         formData.append('password', password);
 
         const tokenResponse = await api.post('/token', formData, {
