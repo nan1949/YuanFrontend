@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Table, Button, message, Space, Popconfirm, Card, Tag, Popover, List } from 'antd';
 import dayjs from 'dayjs';
 import { 
-    getExhibitions, 
+    searchExhibitions, 
     deleteExhibition, 
     getSearchHistory, 
     saveSearchHistory,
@@ -85,7 +85,7 @@ const AdminExhibitions: React.FC = () => {
     ) => {
         setLoading(true);
         try {
-            const res = await getExhibitions({
+            const res = await searchExhibitions({
                 page: page,
                 size: pagination.pageSize,
                 search_name: currentFilters.search_name,

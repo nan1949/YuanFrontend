@@ -20,7 +20,7 @@ const ExhibitionFeaturedCard: React.FC<ExhibitionFeaturedCardProps> = ({ data })
   return (
     // 将整个卡片包装在 Link 中，实现点击整个卡片跳转
     <Link 
-        to={`/exhibitions/${data.id}`} 
+        to={`/exhibitions/${data.slug}`} 
         className="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 flex flex-col justify-between transform hover:-translate-y-0.5"
     >
       <div className="flex flex-col">

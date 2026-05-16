@@ -19,7 +19,7 @@ export interface ExhibitionSearchParams {
 }
 
 
-export const getExhibitions = async (
+export const searchExhibitions = async (
     params: ExhibitionSearchParams
 ): Promise<PaginatedExhibitionsResponse> => {
   try {
@@ -27,7 +27,7 @@ export const getExhibitions = async (
     return response.data;
 
   } catch (error) {
-    console.error("Failed to fetch exhibitions:", error);
+    console.error("Failed to search exhibitions:", error);
     throw error;
   }
 };

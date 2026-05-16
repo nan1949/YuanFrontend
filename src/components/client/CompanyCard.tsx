@@ -9,6 +9,7 @@ import { Tooltip } from 'antd';
 interface CompanyCardProps {
   data: {
     id: string;
+    slug?: string;
     company_name: string;
     company_name_trans?: string;
     country?: string;
@@ -29,7 +30,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ data }) => {
         return parts.length > 0 ? parts.join(' · ') : '—';
     }, [data.country, data.province, data.city]);
   
-    const detailPath = `/companies/${data.id}`;
+    const detailPath = `/companies/${data.slug || data.id}`;
   
   return (
     <div className={`${cardClasses} hover:bg-gray-50 transition-colors py-4`}>

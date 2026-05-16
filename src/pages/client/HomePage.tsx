@@ -4,7 +4,7 @@ import Container from '../../components/client/Container';
 import { Link } from 'react-router-dom'; 
 import { ExhibitionData } from '../../types';
 import ExhibitionFeaturedCard from '../../components/client/ExhibitionFeaturedCard';
-import { getExhibitions } from '../../services/exhibitionService';
+import { searchExhibitions } from '../../services/exhibitionService';
 import { getRecentDynamics } from '../../services/exhibitorService';
 import { RecentDynamic } from '../../services/exhibitorService';
 
@@ -29,7 +29,7 @@ const HomePage: React.FC<HomePageProps> = () => {
     setError(null); // 重置错误状态
     try {
       // 关键修改: 只请求第 1 页，大小为 DISPLAY_COUNT (3)
-      const response = await getExhibitions({
+      const response = await searchExhibitions({
         page: 1,
         size: DISPLAY_COUNT
       }); 
@@ -83,7 +83,7 @@ const HomePage: React.FC<HomePageProps> = () => {
                             连接全球贸易，实时掌握中国企业出海参展足迹。
                         </p>
                         <Link 
-                            to="/companies" 
+                            to="/search?type=company" 
                             className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                         >
                             查看全部展商 →

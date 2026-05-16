@@ -69,7 +69,7 @@ const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
         <div className="flex flex-col flex-grow min-w-0 space-y-3">
             
             <Link 
-                to={`/exhibitions/${data.id}`} 
+                to={`/exhibitions/${data.slug}`} 
                 className={cardTitleClasses}
                 title={data.fair_name_trans}
             >

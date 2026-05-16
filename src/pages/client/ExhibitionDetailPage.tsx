@@ -52,7 +52,7 @@ const DetailItem: React.FC<{
 );
 
 const ExhibitionDetailPage: React.FC = () => {
-    const { id } = useParams<{ id: string }>(); 
+    const { slug } = useParams<{ slug: string }>(); 
     const { user } = useAuth();
     const [exhibition, setExhibition] = useState<ExhibitionData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -67,8 +67,8 @@ const ExhibitionDetailPage: React.FC = () => {
     const formattedItems = formatItemsWithBoldHeaders(exhibition?.exhibition_items || '');
 
     useEffect(() => {
-        if (!id) {
-            setError("展会ID缺失。");
+        if (!slug) {
+            setError("展会 slug 缺失。");
             setLoading(false);
             return;
         }
@@ -76,7 +76,7 @@ const ExhibitionDetailPage: React.FC = () => {
         const fetchDetail = async () => {
             setLoading(true);
             try {
-                const data = await getExhibitionDetail(id); 
+                const data = await getExhibitionDetail(slug); 
                 setExhibition(data);
          
             } catch (err) {
@@ -88,7 +88,7 @@ const ExhibitionDetailPage: React.FC = () => {
         };
 
         fetchDetail();
-    }, [id]);
+    }, [slug]);
 
     if (loading) return <div className="p-12 text-center text-lg text-gray-400">正在加载详情...</div>;
     if (error) return <div className="p-12 text-center text-red-600">{error}</div>;

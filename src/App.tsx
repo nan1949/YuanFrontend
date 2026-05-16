@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import { Outlet } from 'react-router-dom';
 import AdminExhibitions from './pages/admin/AdminExhibitions';
@@ -11,8 +11,7 @@ import { App as AntdApp } from 'antd';
 
 import HomePage from './pages/client/HomePage';
 import ExhibitionDetailPage from './pages/client/ExhibitionDetailPage';
-import ExhibitionsPage from './pages/client/ExhibitionsPage';
-import ExhibitorSearchPage from './pages/client/Companiespage';
+import SearchResultsPage from './pages/client/SearchResultsPage';
 import LoginPage from './pages/client/LoginPage';
 import RegisterPage from './pages/client/RegisterPage';
 import ProfilePage from './pages/client/ProfilePage';
@@ -53,9 +52,11 @@ const App: React.FC = () => {
                 <Routes>
                     <Route element={<MainLayout children={<Outlet />} />}>
                         <Route path="/" element={<HomePage />} />
-                        <Route path="/exhibitions" element={<ExhibitionsPage />} />
-                        <Route path="/exhibitions/:id" element={<ExhibitionDetailPage />} />
-                        <Route path="/exhibitors" element={<ExhibitorSearchPage />} />
+                        <Route path="/search" element={<SearchResultsPage />} />
+                        <Route path="/exhibitions" element={<Navigate to="/search?type=exhibition" replace />} />
+                        <Route path="/exhibitors" element={<Navigate to="/search?type=company" replace />} />
+                        <Route path="/companies" element={<Navigate to="/search?type=company" replace />} />
+                        <Route path="/exhibitions/:slug" element={<ExhibitionDetailPage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
