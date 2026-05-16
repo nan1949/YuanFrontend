@@ -11,6 +11,21 @@ const ProfilePage: React.FC = () => {
     const navigate = useNavigate();
     const [uploading, setUploading] = useState(false);
 
+    const formatMembershipEndAt = (value?: string | null) => {
+        if (!value) return '未开通';
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return value;
+        }
+
+        return new Intl.DateTimeFormat('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        }).format(date);
+    };
+
     useEffect(() => {
         // 如果登录失效或未登录
         if (!user) {
@@ -96,14 +111,16 @@ const ProfilePage: React.FC = () => {
                         )}
                     </div>
                     <h2 className="text-2xl font-bold mt-4">{user.full_name || '未设置姓名'}</h2>
-                    <p className="text-gray-500">{user.email}</p>
+                    <p className="text-gray-500">{user.mobile || user.email || '未绑定手机号'}</p>
                     <Upload {...uploadProps}>
                         <Button icon={<UploadOutlined />} size="small" className="mt-2">修改头像</Button>
                     </Upload>
                 </div>
 
                 <Descriptions bordered column={1}>
-                    <Descriptions.Item label="邮箱地址">{user.email}</Descriptions.Item>
+                    <Descriptions.Item label="手机号">{user.mobile || '未绑定'}</Descriptions.Item>
+                    <Descriptions.Item label="邮箱地址">{user.email || '未设置'}</Descriptions.Item>
+                    <Descriptions.Item label="会员到期时间">{formatMembershipEndAt(user.membership_end_at)}</Descriptions.Item>
                     <Descriptions.Item label="用户角色">
                         {user.is_admin ? '超级管理员' : '普通用户'}
                     </Descriptions.Item>

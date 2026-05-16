@@ -4,11 +4,12 @@ import api from '../services/api';
 // 1. 定义用户数据类型
 interface User {
     id: number;
-    email: string;
+    email?: string | null;
+    mobile?: string | null;
     full_name: string;
     avatar_url: string; 
     is_admin: boolean; 
-    membership_end_at?: string;
+    membership_end_at?: string | null;
     is_valid_member: boolean;
 }
 
