@@ -2,6 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logo2 from '../../assets/logo2.svg';
 import UserNav from '../../components/client/UserNav';
+import {
+  clearSearchHistory,
+  getSearchHistory,
+  saveSearchHistory,
+} from '../../services/searchHistoryService';
 
 type SearchType = 'exhibition' | 'company';
 
@@ -10,7 +15,11 @@ const NavSection: React.FC = () => {
   const navigate = useNavigate();
   const navRef = useRef<HTMLElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const searchBoxRef = useRef<HTMLDivElement | null>(null);
   const [keyword, setKeyword] = useState('');
+  const [history, setHistory] = useState<string[]>([]);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
   useEffect(() => {
     if (location.pathname === '/search') {
@@ -33,13 +42,56 @@ const NavSection: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!searchBoxRef.current?.contains(event.target as Node)) {
+        setIsHistoryOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, []);
+
   const activeSearchType: SearchType =
     location.pathname === '/search' && new URLSearchParams(location.search).get('type') === 'company'
       ? 'company'
       : 'exhibition';
 
-  const handleSearch = () => {
-    const trimmedKeyword = keyword.trim();
+  const loadHistory = async () => {
+    setIsHistoryLoading(true);
+    try {
+      const data = await getSearchHistory();
+      setHistory(data);
+    } catch (error) {
+      console.error('加载搜索历史失败', error);
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  const openHistory = () => {
+    setIsHistoryOpen(true);
+    loadHistory();
+  };
+
+  const handleSearch = async (nextKeyword: string = keyword) => {
+    const trimmedKeyword = nextKeyword.trim();
+    setKeyword(nextKeyword);
+    setIsHistoryOpen(false);
+
+    if (trimmedKeyword) {
+      try {
+        await saveSearchHistory(trimmedKeyword);
+        setHistory(prev => {
+          const filtered = prev.filter(item => item !== trimmedKeyword);
+          return [trimmedKeyword, ...filtered].slice(0, 10);
+        });
+      } catch (error) {
+        console.error('保存搜索历史失败', error);
+      }
+    }
+
     const params = new URLSearchParams();
     params.set('type', activeSearchType);
 
@@ -61,6 +113,20 @@ const NavSection: React.FC = () => {
     inputRef.current?.focus();
   };
 
+  const handleClearHistory = async () => {
+    try {
+      await clearSearchHistory();
+      setHistory([]);
+      setIsHistoryOpen(false);
+    } catch (error) {
+      console.error('清空搜索历史失败', error);
+    }
+  };
+
+  const handleHistorySelect = (historyKeyword: string) => {
+    handleSearch(historyKeyword);
+  };
+
   const placeholder =
     activeSearchType === 'company' ? '搜索参展企业名称、曾用名、简介...' : '搜索国际展会名称、主办方、地点...';
 
@@ -75,13 +141,15 @@ const NavSection: React.FC = () => {
           />
         </Link>
 
-        <div className="order-3 w-full md:order-none md:flex-1 md:max-w-3xl">
+        <div ref={searchBoxRef} className="relative order-3 w-full md:order-none md:flex-1 md:max-w-3xl">
           <div className="flex h-11 w-full overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm">
             <input
               ref={inputRef}
               type="text"
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
+              onClick={openHistory}
+              onFocus={openHistory}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               className="min-w-0 flex-1 px-4 text-sm text-gray-700 outline-none"
@@ -113,12 +181,48 @@ const NavSection: React.FC = () => {
 
             <button
               type="button"
-              onClick={handleSearch}
+              onClick={() => handleSearch()}
               className="shrink-0 bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-700"
             >
               搜索
             </button>
           </div>
+
+          {isHistoryOpen && (
+            <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
+              <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
+                <span className="text-xs font-medium text-gray-500">历史搜索</span>
+                {history.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearHistory}
+                    className="text-xs text-gray-400 transition hover:text-red-500"
+                  >
+                    一键清空
+                  </button>
+                )}
+              </div>
+
+              {isHistoryLoading ? (
+                <div className="px-4 py-3 text-sm text-gray-400">加载中...</div>
+              ) : history.length > 0 ? (
+                <div className="max-h-64 overflow-y-auto py-1">
+                  {history.map(item => (
+                    <button
+                      type="button"
+                      key={item}
+                      onClick={() => handleHistorySelect(item)}
+                      className="block w-full truncate px-4 py-2 text-left text-sm text-gray-700 transition hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 py-3 text-sm text-gray-400">暂无搜索历史</div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="ml-auto">

@@ -5,11 +5,10 @@ import dayjs from 'dayjs';
 import { 
     searchExhibitions, 
     deleteExhibition, 
-    getSearchHistory, 
-    saveSearchHistory,
     getEventFormats,
     getFrequencyTypes
 } from '../../services/exhibitionService';
+import { getSearchHistory, saveSearchHistory } from '../../services/searchHistoryService';
 import ExhibitionHeader from '../../sections/admin/ExhibitionHeader';
 import ExhibitionEditModal from '../../components/admin/ExhibitionEditModal';
 import ExhibitionMergeModal from '../../components/admin/ExhibitionMergeModal';

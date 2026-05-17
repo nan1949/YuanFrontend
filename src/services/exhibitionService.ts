@@ -84,15 +84,6 @@ export const localizeExhibitionImage = async (
 };
 
 
-export const getSearchHistory = async (): Promise<string[]> => {
-    const res = await api.get('/search-history');
-    return res.data;
-};
-
-export const saveSearchHistory = async (keyword: string): Promise<void> => {
-    await api.post(`/search-history?keyword=${encodeURIComponent(keyword)}`);
-};
-
 export const getEventFormats = async (): Promise<EventFormat[]> => {
     const res = await api.get('/event-formats');
     return res.data;
