@@ -44,7 +44,3 @@ export const updatePavilion = async (id: number, data: Partial<Pavilion>) => {
 export const deletePavilion = async (id: number) => {
     return api.delete(`/pavilions/${id}`);
 };
-
-export const mergePavilions = async (keep_id: number, duplicate_ids_to_delete: number[]) => {
-    return api.post('/pavilions/merge', { keep_id, duplicate_ids_to_delete });
-};

@@ -14,13 +14,11 @@ interface ExhibitionHeaderProps {
     fair_status?: string;
   }) => void;
   history: string[];
-  selectedCount: number;
   onAdd: () => void;
-  onMerge: () => void;
 }
 
 const ExhibitionHeader: React.FC<ExhibitionHeaderProps> = (props) => {
-  const { history, onSearch, searchText, setSearchText, selectedCount } = props;
+  const { history, onSearch, searchText, setSearchText } = props;
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [organizers, setOrganizers] = useState<Organizer[]>([]);

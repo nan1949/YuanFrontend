@@ -34,11 +34,3 @@ export const updateOrganizer = async (id: number, data: Partial<Organizer>) => {
 export const deleteOrganizer = async (id: number) => {
     return api.delete(`/organizers/${id}`);
 };
-
-// 合并主办方
-export const mergeOrganizers = async (keep_id: number, duplicate_ids: number[]) => {
-    return api.post('/organizers/merge', {
-        keep_id,
-        duplicate_ids_to_delete: duplicate_ids
-    });
-};

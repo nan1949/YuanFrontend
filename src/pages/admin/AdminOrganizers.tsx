@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Space, Modal, message, Card, Tag } from 'antd';
-import { PlusOutlined, MergeCellsOutlined, EditOutlined, DeleteOutlined, GlobalOutlined } from '@ant-design/icons';
-import { getOrganizers, deleteOrganizer, mergeOrganizers } from '../../services/organizerService';
+import { Table, Button, Input, Space, Modal, message, Card } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, GlobalOutlined } from '@ant-design/icons';
+import { getOrganizers, deleteOrganizer } from '../../services/organizerService';
 import { Organizer } from '../../types';
 import OrganizerEditModal from '../../components/admin/OrganizerEditModal';
 
@@ -11,7 +11,6 @@ const AdminOrganizers: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
     const [keyword, setKeyword] = useState('');
-    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingOrganizer, setEditingOrganizer] = useState<Organizer | null>(null);
 
@@ -29,27 +28,6 @@ const AdminOrganizers: React.FC = () => {
     };
 
     useEffect(() => { fetchData(); }, [page, keyword]);
-
-    // 处理合并逻辑
-    const handleMerge = () => {
-        if (selectedRowKeys.length < 2) return;
-        const [keep_id, ...duplicates] = selectedRowKeys as number[];
-        
-        Modal.confirm({
-            title: '合并重复主办方',
-            content: `确定将选中的 ${duplicates.length} 个记录合并到 ID: ${keep_id} 吗？合并后重复记录将被删除，关联展会将自动迁移。`,
-            onOk: async () => {
-                try {
-                    await mergeOrganizers(keep_id, duplicates);
-                    message.success('合并成功');
-                    setSelectedRowKeys([]);
-                    fetchData();
-                } catch (e) {
-                    message.error('合并失败');
-                }
-            }
-        });
-    };
 
     const columns = [
         { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
@@ -115,13 +93,6 @@ const AdminOrganizers: React.FC = () => {
                         allowClear
                     />
                     <Space>
-                        <Button 
-                            icon={<MergeCellsOutlined />} 
-                            disabled={selectedRowKeys.length < 2}
-                            onClick={handleMerge}
-                        >
-                            合并选中 ({selectedRowKeys.length})
-                        </Button>
                         <Button type="primary" icon={<PlusOutlined />} onClick={() => {
                             setEditingOrganizer(null);
                             setIsModalOpen(true);
@@ -132,10 +103,6 @@ const AdminOrganizers: React.FC = () => {
                 </div>
 
                 <Table
-                    rowSelection={{
-                        selectedRowKeys,
-                        onChange: (keys) => setSelectedRowKeys(keys),
-                    }}
                     columns={columns}
                     dataSource={data}
                     rowKey="id"

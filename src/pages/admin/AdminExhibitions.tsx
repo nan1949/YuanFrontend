@@ -11,7 +11,6 @@ import {
 import { getSearchHistory, saveSearchHistory } from '../../services/searchHistoryService';
 import ExhibitionHeader from '../../sections/admin/ExhibitionHeader';
 import ExhibitionEditModal from '../../components/admin/ExhibitionEditModal';
-import ExhibitionMergeModal from '../../components/admin/ExhibitionMergeModal';
 import ExhibitionCrawlModal from '../../components/admin/ExhibitionCrawlModal';
 import { ExhibitionData, EventFormat, FrequencyType, ExhibitorVersion } from '../../types';
 import * as industryService from '../../services/industryService';
@@ -42,7 +41,6 @@ const AdminExhibitions: React.FC = () => {
     const [data, setData] = useState<ExhibitionData[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     const [history, setHistory] = useState<string[]>([]);
     const [eventFormats, setEventFormats] = useState<EventFormat[]>([]);
@@ -61,7 +59,6 @@ const AdminExhibitions: React.FC = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingFair, setEditingFair] = useState<ExhibitionData | null>(null);
 
-    const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
     const [isCrawlModalOpen, setIsCrawlModalOpen] = useState(false);
 
     const { countries, provinces, cities, loadCountries, loadProvinces, loadCities } = useRegionData();
@@ -180,23 +177,12 @@ const AdminExhibitions: React.FC = () => {
         try {
         await deleteExhibition(id);
         message.success('删除成功');
-        
-        // 🚀 核心修复：删除成功后清空选中项状态
-        setSelectedIds([]); 
-        
+
         fetchData(filters, pagination.current);
     } catch (error) {
         message.error('删除失败');
     }
     };
-
-    const handleMergeButtonClick = () => {
-        if (selectedIds.length < 2) {
-            return message.warning('请至少选择两条数据进行合并');
-        }
-        setIsMergeModalOpen(true);
-    };
-
 
     // 处理分页、排序变化
     const handleTableChange = (paginationInfo: any, filters: any, sorter: any) => {
@@ -394,16 +380,11 @@ const AdminExhibitions: React.FC = () => {
                 setSearchText={(val) => setFilters(f => ({ ...f, search_name: val }))}
                 onSearch={handleSearch}
                 history={history}
-                selectedCount={selectedIds.length}
                 onAdd={showCreateModal}
-                onMerge={handleMergeButtonClick}
             />
     
             <Table 
                 loading={loading}
-                rowSelection={{ 
-                    onChange: (keys) => setSelectedIds(keys as string[]) 
-                }}
                 dataSource={data} 
                 columns={columns} 
                 rowKey="id" 
@@ -416,17 +397,6 @@ const AdminExhibitions: React.FC = () => {
                     onChange: (page) => setPagination({ ...pagination, current: page }),
                     showSizeChanger: false,
                     showTotal: (total) => `共 ${total} 条记录`
-                }}
-            />
-
-            <ExhibitionMergeModal 
-                open={isMergeModalOpen}
-                selectedExhibitions={data.filter(f => selectedIds.includes(f.id))}
-                onCancel={() => setIsMergeModalOpen(false)}
-                onSuccess={() => {
-                    setIsMergeModalOpen(false);
-                    setSelectedIds([]);
-                    fetchData();
                 }}
             />
 

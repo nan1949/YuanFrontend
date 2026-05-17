@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Space, Modal, message, Card, Popconfirm } from 'antd';
-import { PlusOutlined, MergeCellsOutlined, EditOutlined } from '@ant-design/icons';
-import { getPavilions, deletePavilion, mergePavilions } from '../../services/pavilionService';
+import { Table, Button, Input, Space, message, Card, Popconfirm } from 'antd';
+import { PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { getPavilions, deletePavilion } from '../../services/pavilionService';
 import { Pavilion } from '../../types';
 import PavilionEditModal from '../../components/admin/PavilionEditModal';
 import { useRegionData } from '../../hooks/useRegionData';
@@ -12,7 +12,6 @@ const AdminPavilions: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
     const [keyword, setKeyword] = useState('');
-    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPavilion, setEditingPavilion] = useState<Pavilion | null>(null);
@@ -56,23 +55,6 @@ const AdminPavilions: React.FC = () => {
         fetchData();
     };
 
-    // 合并逻辑实现
-    const handleMerge = () => {
-        if (selectedRowKeys.length < 2) return;
-        
-        Modal.confirm({
-            title: '合并展馆记录',
-            content: `确定要将选中的 ${selectedRowKeys.length - 1} 个展馆合并到 ID 为 ${selectedRowKeys[0]} 的记录中吗？被合并的记录将被删除，相关展会引用将自动更新。`,
-            onOk: async () => {
-                const [keep_id, ...duplicates] = selectedRowKeys as number[];
-                await mergePavilions(keep_id, duplicates);
-                message.success('合并成功');
-                setSelectedRowKeys([]);
-                fetchData();
-            }
-        });
-    };
-
     const columns = [
         { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
         { title: '展馆名称 (英)', dataIndex: 'pavilion_name', key: 'pavilion_name' },
@@ -108,13 +90,6 @@ const AdminPavilions: React.FC = () => {
                         />
                     </Space>
                     <Space>
-                        <Button 
-                            icon={<MergeCellsOutlined />} 
-                            disabled={selectedRowKeys.length < 2}
-                            onClick={handleMerge}
-                        >
-                            合并选中
-                        </Button>
                         <Button type="primary" icon={<PlusOutlined />}
                             onClick={() => {
                                 setEditingPavilion(null);
@@ -126,10 +101,6 @@ const AdminPavilions: React.FC = () => {
                 </div>
 
                 <Table
-                    rowSelection={{
-                        selectedRowKeys,
-                        onChange: (keys) => setSelectedRowKeys(keys),
-                    }}
                     columns={columns}
                     dataSource={data}
                     rowKey="id"

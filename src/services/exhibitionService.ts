@@ -83,15 +83,6 @@ export const deleteExhibition = async (slug: string): Promise<void> => {
 };
 
 
-export const mergeExhibitions = async (keepId: number, duplicateIds: number[]): Promise<any> => {
-    const response = await api.post(`/exhibitions/merge`, {
-        keep_id: keepId,
-        duplicate_ids_to_delete: duplicateIds
-    });
-    return response.data;
-};
-
-
 export const localizeExhibitionImage = async (
     slug: string, 
     externalUrl: string, 
