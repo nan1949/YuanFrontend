@@ -7,6 +7,17 @@ export interface PaginatedExhibitionsResponse {
     results: ExhibitionData[];
 }
 
+export interface HomepageFeatureExhibition {
+    id: number;
+    target_type: string;
+    target_id: number;
+    sort_order: number;
+    status: number;
+    created_at: string;
+    updated_at: string;
+    exhibition: ExhibitionData;
+}
+
 export interface ExhibitionSearchParams {
     page: number;
     size: number;
@@ -30,6 +41,16 @@ export const searchExhibitions = async (
     console.error("Failed to search exhibitions:", error);
     throw error;
   }
+};
+
+export const getHomepageFeatureExhibitions = async (): Promise<HomepageFeatureExhibition[]> => {
+    try {
+        const response = await api.get<HomepageFeatureExhibition[]>(`/homepage-features/exhibitions`);
+        return response.data;
+    } catch (error) {
+        console.error("Failed to fetch homepage feature exhibitions:", error);
+        throw error;
+    }
 };
 
 

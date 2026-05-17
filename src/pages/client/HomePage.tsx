@@ -4,7 +4,7 @@ import Container from '../../components/client/Container';
 import { Link } from 'react-router-dom'; 
 import { ExhibitionData } from '../../types';
 import ExhibitionFeaturedCard from '../../components/client/ExhibitionFeaturedCard';
-import { searchExhibitions } from '../../services/exhibitionService';
+import { getHomepageFeatureExhibitions } from '../../services/exhibitionService';
 import { getRecentDynamics } from '../../services/exhibitorService';
 import { RecentDynamic } from '../../services/exhibitorService';
 
@@ -28,13 +28,14 @@ const HomePage: React.FC<HomePageProps> = () => {
     setLoading(true);
     setError(null); // 重置错误状态
     try {
-      // 关键修改: 只请求第 1 页，大小为 DISPLAY_COUNT (3)
-      const response = await searchExhibitions({
-        page: 1,
-        size: DISPLAY_COUNT
-      }); 
+      const featuredItems = await getHomepageFeatureExhibitions(); 
       
-      setExhibitions(response.results.slice(0, DISPLAY_COUNT)); // 确保最多只显示 3 条
+      setExhibitions(
+        featuredItems
+          .map((item) => item.exhibition)
+          .filter((exhibition): exhibition is ExhibitionData => Boolean(exhibition))
+          .slice(0, DISPLAY_COUNT)
+      );
 
     } catch (err) {
       console.error("加载展会数据失败:", err);

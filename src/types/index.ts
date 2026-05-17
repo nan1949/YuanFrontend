@@ -22,7 +22,7 @@ export interface ExhibitorVersion {
 
 
 export interface ExhibitionData {
-  id: string;
+  id: string | number;
   slug: string;
   fair_name: string;
   fair_name_trans: string;
@@ -41,6 +41,7 @@ export interface ExhibitionData {
   province_id: number,
   city_id: number,
   country: string;
+  iso_code?: string;
   province: string; 
   city: string;
   pavilion_id: number;
@@ -54,6 +55,7 @@ export interface ExhibitionData {
   email: string,
   logo_url?: string;
   banner_url?: string;
+  source_url?: string;
 
   // 新增字段
   // exhibitor_edition?: string; // 最新展商日期/届份
