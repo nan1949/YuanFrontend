@@ -149,6 +149,14 @@ const SearchResultsPage: React.FC = () => {
         updateSearchParams({ page: 1, pageSize: newSize });
     };
 
+    const handleTypeChange = (nextType: SearchType) => {
+        if (nextType === searchType) {
+            return;
+        }
+
+        updateSearchParams({ type: nextType, page: 1 });
+    };
+
     const renderResults = () => {
         if (loading) {
             return (
@@ -203,17 +211,44 @@ const SearchResultsPage: React.FC = () => {
     };
 
     return (
-        <Container className="py-8">
-            <div className="mb-6 rounded-2xl border border-gray-200 bg-white px-6 py-5 shadow-sm">
-                <p className="text-sm font-medium text-blue-600">统一搜索结果</p>
-                <h1 className="mt-2 text-2xl font-bold text-gray-900">{headingLabel}</h1>
-                <p className="mt-2 text-sm text-gray-500">
-                    {searchTerm ? `当前关键词：${searchTerm}` : `当前展示全部${headingLabel}结果。`}
-                </p>
+        <div className="pb-8">
+            <div
+                className="sticky z-40 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur"
+                style={{ top: 'var(--client-nav-height, 60px)' }}
+            >
+                <Container className="flex items-end gap-8">
+                    <button
+                        type="button"
+                        onClick={() => handleTypeChange('exhibition')}
+                        className={`relative py-4 text-sm font-medium transition-colors ${
+                            searchType === 'exhibition' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-800'
+                        }`}
+                    >
+                        国际展会
+                        {searchType === 'exhibition' && (
+                            <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-blue-600" />
+                        )}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => handleTypeChange('company')}
+                        className={`relative py-4 text-sm font-medium transition-colors ${
+                            searchType === 'company' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-800'
+                        }`}
+                    >
+                        参展企业
+                        {searchType === 'company' && (
+                            <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-blue-600" />
+                        )}
+                    </button>
+                </Container>
             </div>
 
-            {renderResults()}
-        </Container>
+            <Container className="pt-6">
+                {renderResults()}
+            </Container>
+        </div>
     );
 };
 

@@ -1,5 +1,19 @@
 import api from './api';
 
+export interface CompanyDetail {
+  slug: string;
+  organize_code?: string | null;
+  company_name?: string | null;
+  company_name_trans?: string | null;
+  register_status?: string | null;
+  country?: string | null;
+  province?: string | null;
+  city?: string | null;
+  website?: string | null;
+  introduction?: string | null;
+  business_scope?: string | null;
+}
+
 export interface CompanySearchParams {
   search_name?: string;
   country?: string;
@@ -34,5 +48,15 @@ export const searchCompanies = async (
   } catch (error: any) {
     console.error("Company Search Failed:", error);
     throw new Error(error.response?.data?.detail || '无法获取公司数据');
+  }
+};
+
+export const getCompanyDetail = async (slug: string): Promise<CompanyDetail> => {
+  try {
+    const response = await api.get<CompanyDetail>(`/companies/${slug}`);
+    return response.data;
+  } catch (error: any) {
+    console.error(`Failed to fetch company detail for slug ${slug}:`, error);
+    throw new Error(error.response?.data?.detail || '无法获取企业详情数据');
   }
 };

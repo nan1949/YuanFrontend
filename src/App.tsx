@@ -10,6 +10,7 @@ import MainLayout from './layouts/MainLayout';
 import { App as AntdApp } from 'antd';
 
 import HomePage from './pages/client/HomePage';
+import CompanyDetailPage from './pages/client/CompanyDetailPage';
 import ExhibitionDetailPage from './pages/client/ExhibitionDetailPage';
 import SearchResultsPage from './pages/client/SearchResultsPage';
 import LoginPage from './pages/client/LoginPage';
@@ -56,6 +57,7 @@ const App: React.FC = () => {
                         <Route path="/exhibitions" element={<Navigate to="/search?type=exhibition" replace />} />
                         <Route path="/exhibitors" element={<Navigate to="/search?type=company" replace />} />
                         <Route path="/companies" element={<Navigate to="/search?type=company" replace />} />
+                        <Route path="/companies/:slug" element={<CompanyDetailPage />} />
                         <Route path="/exhibitions/:slug" element={<ExhibitionDetailPage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
