@@ -148,14 +148,6 @@ const SearchResultsPage: React.FC = () => {
         return Math.ceil(totalCount / pageSize);
     }, [pageSize, totalCount]);
 
-    const handlePageChange = (newPage: number) => {
-        updateSearchParams({ page: newPage });
-    };
-
-    const handlePageSizeChange = (newSize: number) => {
-        updateSearchParams({ page: 1, pageSize: newSize });
-    };
-
     const handleTypeChange = (nextType: SearchType) => {
         if (nextType === searchType) {
             return;
@@ -209,8 +201,9 @@ const SearchResultsPage: React.FC = () => {
                         currentPage={currentPage}
                         pageSize={pageSize}
                         totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                        onPageSizeChange={handlePageSizeChange}
+                        baseUrl={getSearchPath(searchType)}
+                        searchQuery={searchTerm}
+                        defaultPageSize={DEFAULT_PAGE_SIZE}
                     />
                 )}
             </div>
