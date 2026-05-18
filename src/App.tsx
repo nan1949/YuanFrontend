@@ -23,7 +23,35 @@ import AdminIndustries from './pages/admin/AdminIndustries';
 import AdminOrganizers from './pages/admin/AdminOrganizers';
 import AdminExhibitors from './pages/admin/AdminExhibitors';
 import AdminExhibitionDetailView from './pages/admin/AdminExhibitionDetailView'
+import { getSearchPath, getSearchTypeFromPath } from './utils/searchRouting';
 import 'flag-icons/css/flag-icons.min.css';
+
+
+const LegacySearchRedirect: React.FC = () => {
+    const currentUrl = new URL(window.location.href);
+    const searchType = getSearchTypeFromPath(currentUrl.pathname, currentUrl.search);
+    const nextParams = new URLSearchParams();
+    const query = currentUrl.searchParams.get('q')?.trim();
+    const page = currentUrl.searchParams.get('page');
+    const pageSize = currentUrl.searchParams.get('pageSize');
+
+    if (query) {
+        nextParams.set('q', query);
+    }
+
+    if (page && Number(page) > 1) {
+        nextParams.set('page', page);
+    }
+
+    if (pageSize && Number(pageSize) > 0) {
+        nextParams.set('pageSize', pageSize);
+    }
+
+    const nextPath = getSearchPath(searchType);
+    const nextUrl = nextParams.toString() ? `${nextPath}?${nextParams.toString()}` : nextPath;
+
+    return <Navigate to={nextUrl} replace />;
+};
 
 
 
@@ -53,10 +81,12 @@ const App: React.FC = () => {
                 <Routes>
                     <Route element={<MainLayout children={<Outlet />} />}>
                         <Route path="/" element={<HomePage />} />
-                        <Route path="/search" element={<SearchResultsPage />} />
-                        <Route path="/exhibitions" element={<Navigate to="/search?type=exhibition" replace />} />
-                        <Route path="/exhibitors" element={<Navigate to="/search?type=company" replace />} />
-                        <Route path="/companies" element={<Navigate to="/search?type=company" replace />} />
+                        <Route path="/search" element={<LegacySearchRedirect />} />
+                        <Route path="/exhibitions" element={<Navigate to="/exhibitions/search" replace />} />
+                        <Route path="/exhibitions/search" element={<SearchResultsPage />} />
+                        <Route path="/exhibitors" element={<Navigate to="/companies/search" replace />} />
+                        <Route path="/companies" element={<Navigate to="/companies/search" replace />} />
+                        <Route path="/companies/search" element={<SearchResultsPage />} />
                         <Route path="/companies/:slug" element={<CompanyDetailPage />} />
                         <Route path="/exhibitions/:slug" element={<ExhibitionDetailPage />} />
                         <Route path="/login" element={<LoginPage />} />

@@ -23,6 +23,8 @@
   "dependencies": {
     "antd": "^5.27.4",
     "axios": "^1.12.2",
+    "baseline-browser-mapping": "^2.10.30",
+    "caniuse-lite": "^1.0.30001793",
     "embla-carousel-react": "^8.6.0",
     "flag-icons": "^7.5.0",
     "react": "^19.1.1",

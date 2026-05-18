@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import useTitle from '../../hooks/useTitle';
+import { Helmet } from 'react-helmet-async';
 import Container from '../../components/client/Container';
 import { Link } from 'react-router-dom'; 
 import { ExhibitionData } from '../../types';
@@ -14,8 +14,6 @@ const DISPLAY_COUNT = 6;
 interface HomePageProps {}
 
 const HomePage: React.FC<HomePageProps> = () => {
-
-  useTitle('展外展-找国际展会_找出海展商_找出海政策_出海企业查询系统');
 
   const [exhibitions, setExhibitions] = useState<ExhibitionData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +67,9 @@ const HomePage: React.FC<HomePageProps> = () => {
   return (
     
     <div className="flex flex-col">
+        <Helmet>
+            <title>展外展-找国际展会_找出海展商_找出海政策_出海企业查询系统</title>
+        </Helmet>
         
         <div className="bg-slate-50 border-b border-gray-200 py-12">
             <Container>
@@ -84,7 +85,7 @@ const HomePage: React.FC<HomePageProps> = () => {
                             连接全球贸易，实时掌握中国企业出海参展足迹。
                         </p>
                         <Link 
-                            to="/search?type=company" 
+                            to="/companies/search" 
                             className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                         >
                             查看全部展商 →

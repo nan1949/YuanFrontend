@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { Table, Button, message, Space, Popconfirm, Card, Tag, Popover, List } from 'antd';
 import dayjs from 'dayjs';
@@ -15,7 +16,6 @@ import ExhibitionCrawlModal from '../../components/admin/ExhibitionCrawlModal';
 import { ExhibitionData, EventFormat, FrequencyType, ExhibitorVersion } from '../../types';
 import * as industryService from '../../services/industryService';
 import { useRegionData } from '../../hooks/useRegionData';
-import useTitle from '../../hooks/useTitle';
 
 
 const statusMap: Record<string, { color: string, text: string }> = {
@@ -36,8 +36,6 @@ const fairStatusOptions = [
 
 
 const AdminExhibitions: React.FC = () => {
-    useTitle('展会管理中心-管理后台');
-
     const [data, setData] = useState<ExhibitionData[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -374,6 +372,11 @@ const AdminExhibitions: React.FC = () => {
     ];
 
     return  (
+        <>
+        <Helmet>
+            <title>展会管理中心-管理后台</title>
+        </Helmet>
+
         <Card bordered={false} className="shadow-sm">
             <ExhibitionHeader
                 searchText={filters.search_name}
@@ -426,6 +429,7 @@ const AdminExhibitions: React.FC = () => {
                 onCancel={() => setIsCrawlModalOpen(false)}
             />
         </Card>
+        </>
 
     );
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 import Container from '../../components/client/Container';
-import useTitle from '../../hooks/useTitle';
 import { CompanyDetail, getCompanyDetail } from '../../services/companyService';
 
 const DetailItem: React.FC<{
@@ -32,8 +32,6 @@ const CompanyDetailPage: React.FC = () => {
 
         return '企业详情 - 展外展';
     }, [company]);
-
-    useTitle(pageTitle);
 
     useEffect(() => {
         if (!slug) {
@@ -88,6 +86,10 @@ const CompanyDetailPage: React.FC = () => {
 
     return (
         <Container className="py-8">
+            <Helmet>
+                <title>{pageTitle}</title>
+            </Helmet>
+
             <div className="mb-6 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                 <h1 className="text-3xl font-bold text-gray-900">
                     {company.company_name_trans || company.company_name || '未命名企业'}

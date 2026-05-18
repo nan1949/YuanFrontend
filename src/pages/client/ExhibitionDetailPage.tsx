@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 import { ExhibitionData } from '../../types';
 import { getExhibitionDetail } from '../../services/exhibitionService';
-import useTitle from '../../hooks/useTitle';
 import TabButton from '../../components/client/TabButton';
 import Container from '../../components/client/Container';
 import { useAuth } from '../../contexts/AuthContext';
@@ -69,9 +69,6 @@ const ExhibitionDetailPage: React.FC = () => {
 
     const [activeTab, setActiveTab] = useState<'items' | 'exhibitors'>('items');
 
-    const pageTitle = exhibition ? `${exhibition.fair_name_trans}-展外展` : '加载中...';
-    useTitle(pageTitle); 
-
     const formattedIntro = convertMarkdownBoldToHtml(exhibition?.intro || '');
     const formattedItems = formatItemsWithBoldHeaders(exhibition?.exhibition_items || '');
 
@@ -106,11 +103,54 @@ const ExhibitionDetailPage: React.FC = () => {
     const startDate = formatDate(exhibition.fair_start_date);
     const endDate = formatDate(exhibition.fair_end_date);
     const industryFields = Array.isArray(exhibition.industry_field) ? exhibition.industry_field : [];
+    const exhibitionTitle = exhibition.fair_name_trans || exhibition.fair_name;
+    const exhibitionYear = startDate !== '待定' ? startDate.split('-')[0] : '';
+    const seoTitle = `${exhibitionTitle}展商名录_${exhibitionTitle}参展企业名单查询 - 展外展`;
+    const seoDescription = `为您提供${exhibitionTitle}历届海外展商名录及参展轨迹核验系统，查询${exhibitionTitle}参展企业名单、展商数据、展会时间地点及相关行业信息。`;
+    const jsonLdData = {
+        '@context': 'https://schema.org',
+        '@type': 'Event',
+        name: exhibitionTitle,
+        alternativeHeadline: exhibition.fair_name || undefined,
+        startDate,
+        endDate,
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: {
+            '@type': 'Place',
+            name: exhibition.pavilion || '展馆名称',
+            address: {
+                '@type': 'PostalAddress',
+                addressCountry: exhibition.country || undefined,
+                addressRegion: exhibition.province || undefined,
+                addressLocality: exhibition.city || undefined,
+            },
+        },
+        description: `${exhibitionYear ? `${exhibitionYear}年` : ''}${exhibitionTitle}官方展商名录查询与参展轨迹核验中心。`,
+        organizer: {
+            '@type': 'Organization',
+            name: exhibition.organizer_name || '展外展',
+        },
+        url: typeof window !== 'undefined' ? window.location.href : undefined,
+        sameAs: exhibition.website
+            ? exhibition.website.startsWith('http')
+                ? exhibition.website
+                : `https://${exhibition.website}`
+            : undefined,
+    };
 
     const isValidMember = user?.is_valid_member;
 
     return (
         <Container>
+            <Helmet>
+                <title>{seoTitle}</title>
+                <meta name="description" content={seoDescription} />
+                <script type="application/ld+json">
+                    {JSON.stringify(jsonLdData)}
+                </script>
+            </Helmet>
+
             <div className="flex items-start pt-8 mb-6 px-1">
                 {exhibition.logo_url && (
                     <img
@@ -228,10 +268,13 @@ const ExhibitionDetailPage: React.FC = () => {
                 <div className="pb-20">
                     {activeTab === 'items' && (
                         formattedItems ? (
-                            <div 
-                                className="text-gray-700 text-[15px] leading-loose whitespace-pre-wrap bg-white p-2"
-                                dangerouslySetInnerHTML={{ __html: formattedItems }}
-                            />
+                            <div className="bg-white p-2">
+                                <h2 className="sr-only">{exhibitionTitle} 展品范围</h2>
+                                <div 
+                                    className="text-gray-700 text-[15px] leading-loose whitespace-pre-wrap"
+                                    dangerouslySetInnerHTML={{ __html: formattedItems }}
+                                />
+                            </div>
                         ) : (
                             <p className="text-gray-400 italic text-sm text-center py-10">暂无详细展品范围信息。</p>
                         )

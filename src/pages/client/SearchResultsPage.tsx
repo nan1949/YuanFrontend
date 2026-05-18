@@ -1,18 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Container from '../../components/client/Container';
 import CompanyCard from '../../components/client/CompanyCard';
 import ExhibitionCard from '../../components/client/ExhibitionCard';
 import PaginationControls from '../../components/client/PaginationControls';
 import SearchResultCount from '../../components/client/SearchResultCount';
-import useTitle from '../../hooks/useTitle';
 import { searchCompanies } from '../../services/companyService';
 import { searchExhibitions } from '../../services/exhibitionService';
 import { ExhibitionData } from '../../types';
+import { getSearchPath, getSearchTypeFromPath, SearchType } from '../../utils/searchRouting';
 
 const DEFAULT_PAGE_SIZE = 10;
-
-type SearchType = 'exhibition' | 'company';
 
 interface CompanySearchItem {
     id: string;
@@ -34,9 +33,11 @@ const parsePositiveNumber = (value: string | null, fallback: number) => {
 };
 
 const SearchResultsPage: React.FC = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const searchType: SearchType = searchParams.get('type') === 'company' ? 'company' : 'exhibition';
+    const searchType: SearchType = getSearchTypeFromPath(location.pathname, location.search);
     const searchTerm = (searchParams.get('q') || '').trim();
     const currentPage = parsePositiveNumber(searchParams.get('page'), 1);
     const pageSize = parsePositiveNumber(searchParams.get('pageSize'), DEFAULT_PAGE_SIZE);
@@ -49,8 +50,7 @@ const SearchResultsPage: React.FC = () => {
 
     const headingLabel = searchType === 'exhibition' ? '国际展会' : '参展企业';
     const countLabel = searchType === 'exhibition' ? '展会' : '企业';
-
-    useTitle(`${headingLabel}搜索结果 - 展外展`);
+    const pageTitle = `${headingLabel}搜索结果 - 展外展`;
 
     const updateSearchParams = (updates: {
         page?: number;
@@ -64,7 +64,6 @@ const SearchResultsPage: React.FC = () => {
         const nextPageSize = updates.pageSize ?? pageSize;
 
         const nextParams = new URLSearchParams();
-        nextParams.set('type', nextType);
 
         if (nextQuery) {
             nextParams.set('q', nextQuery);
@@ -78,7 +77,15 @@ const SearchResultsPage: React.FC = () => {
             nextParams.set('pageSize', String(nextPageSize));
         }
 
-        setSearchParams(nextParams);
+        const nextPath = getSearchPath(nextType);
+        const nextSearch = nextParams.toString();
+
+        if (location.pathname === nextPath) {
+            setSearchParams(nextParams, { replace: true });
+            return;
+        }
+
+        navigate(`${nextPath}${nextSearch ? `?${nextSearch}` : ''}`);
     };
 
     useEffect(() => {
@@ -212,6 +219,10 @@ const SearchResultsPage: React.FC = () => {
 
     return (
         <div className="pb-8">
+            <Helmet>
+                <title>{pageTitle}</title>
+            </Helmet>
+
             <div
                 className="sticky z-40 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur"
                 style={{ top: 'var(--client-nav-height, 60px)' }}

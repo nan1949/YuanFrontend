@@ -7,8 +7,7 @@ import {
   getSearchHistory,
   saveSearchHistory,
 } from '../../services/searchHistoryService';
-
-type SearchType = 'exhibition' | 'company';
+import { getSearchPath, getSearchTypeFromPath, isSearchResultsPath, SearchType } from '../../utils/searchRouting';
 
 const NavSection: React.FC = () => {
   const location = useLocation();
@@ -21,12 +20,16 @@ const NavSection: React.FC = () => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isSearchHighlighted, setIsSearchHighlighted] = useState(false);
+  const activeSearchType = getSearchTypeFromPath(location.pathname, location.search);
 
   useEffect(() => {
-    if (location.pathname === '/search') {
+    if (isSearchResultsPath(location.pathname)) {
       const params = new URLSearchParams(location.search);
       setKeyword(params.get('q') || '');
+      return;
     }
+
+    setKeyword('');
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -61,8 +64,6 @@ const NavSection: React.FC = () => {
       const nextType = detail?.type || 'company';
       const params = new URLSearchParams();
 
-      params.set('type', nextType);
-
       if (nextKeyword) {
         params.set('q', nextKeyword);
       }
@@ -70,7 +71,7 @@ const NavSection: React.FC = () => {
       setKeyword(nextKeyword);
       setIsHistoryOpen(false);
       setIsSearchHighlighted(true);
-      navigate(`/search?${params.toString()}`);
+      navigate(`${getSearchPath(nextType)}${params.toString() ? `?${params.toString()}` : ''}`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
       window.setTimeout(() => {
@@ -85,11 +86,6 @@ const NavSection: React.FC = () => {
     window.addEventListener('client:navbar-search-focus', handleNavbarSearchFocus);
     return () => window.removeEventListener('client:navbar-search-focus', handleNavbarSearchFocus);
   }, [navigate]);
-
-  const activeSearchType: SearchType =
-    location.pathname === '/search' && new URLSearchParams(location.search).get('type') === 'company'
-      ? 'company'
-      : 'exhibition';
 
   const loadHistory = async () => {
     setIsHistoryLoading(true);
@@ -126,13 +122,12 @@ const NavSection: React.FC = () => {
     }
 
     const params = new URLSearchParams();
-    params.set('type', activeSearchType);
 
     if (trimmedKeyword) {
       params.set('q', trimmedKeyword);
     }
 
-    navigate(`/search?${params.toString()}`);
+    navigate(`${getSearchPath(activeSearchType)}${params.toString() ? `?${params.toString()}` : ''}`);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
