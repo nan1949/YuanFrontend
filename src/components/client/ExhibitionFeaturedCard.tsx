@@ -25,36 +25,32 @@ const ExhibitionFeaturedCard: React.FC<ExhibitionFeaturedCardProps> = ({ data })
     >
       <div className="flex flex-col">
         
-        {/* 头部区域：Logo 和标题 */}
         <div className="flex items-start mb-4">
           
-          {/* 左侧：Logo (w-20 h-20) */}
           {data.logo_url ? (
             <img 
               src={data.logo_url} 
               alt={`${data.fair_name} Logo`} 
-              className="w-20 h-20 object-contain mr-4 rounded" 
+              className="w-20 h-20 object-contain mr-4 rounded flex-shrink-0" 
             />
           ) : (
-             <div className="w-20 h-20 mr-4 flex items-center justify-center bg-gray-200 text-gray-500 rounded text-base font-semibold">
+             <div className="w-20 h-20 mr-4 flex items-center justify-center bg-gray-200 text-gray-500 rounded text-base font-semibold flex-shrink-0">
                 LOGO
              </div>
           )}
 
-          {/* 右侧：标题 (双行展示) */}
           <div className="flex-grow min-w-0 pt-1">
-            {/* 主标题：中文名 */}
-            <h3 className="text-xl font-semibold text-gray-800 leading-snug truncate">
+ 
+            <h3 className="text-xl font-semibold text-gray-800 leading-snug truncate" title={data.fair_name}>
               {data.fair_name}
             </h3>
-            {/* 副标题：英文名 */}
-            <p className="text-sm text-gray-500 truncate mt-1" title={data.fair_name_trans}>
+            <p className="text-sm text-gray-500 mt-1 leading-snug whitespace-normal break-words" title={data.fair_name_trans}>
               {data.fair_name_trans}
             </p>
           </div>
         </div>
         
-        {/* 关键信息展示区域 (移除分割线 1) */}
+
         <div className="mb-4 pt-2"> 
           
           {/* 时间 */}
