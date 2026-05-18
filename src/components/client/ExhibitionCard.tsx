@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ExhibitionData } from '../../types';
 import { card2ndTitleClasses, cardClasses, cardRowClasses, cardTitleClasses } from '../../styles/tailwindStyles';
 import TagGroup from './TagGroup';
-import { useAuth } from '../../contexts/AuthContext';
+import ExhibitionWebsite from './ExhibitionWebsite';
 
 
 const formatDate = (dateString: string | null): string => {
@@ -41,15 +41,12 @@ const InfoItem: React.FC<InfoItemProps> = ({ label, value }) => {
 
 
 const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
-    const { user } = useAuth();
     const startDate = formatDate(data.fair_start_date);
     const endDate = formatDate(data.fair_end_date);
 
     const locationString = [data.country, data.province, data.city]
                           .filter(Boolean)
                           .join(', ')
-
-    const isValidMember = user?.is_valid_member;
 
   return (
    <div className={cardClasses}>
@@ -114,28 +111,7 @@ const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
                 />
                 <div className="flex items-center">
                     <span className="text-gray-400 flex-shrink-0">官网：</span>
-                    { !isValidMember ? (
-                        // 2. 已登录但非有效会员：显示模糊效果并提示升级
-                        <div className="relative cursor-pointer group">
-                            <span className="text-blue-300 blur-[4px] select-none text-sm">
-                                https://www.exhibition-website.com
-                            </span>
-                            <span className="absolute left-0 -top-7 hidden group-hover:block bg-white text-gray-800 text-[11px] px-2 py-1 rounded border border-gray-200 whitespace-nowrap shadow-md z-10 font-medium">
-                                仅限会员查看
-                            </span>
-                        </div>
-                    ) : data.website ? (
-                        <a 
-                            href={data.website.startsWith('http') ? data.website : `https://${data.website}`}
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline truncate max-w-[500px]"
-                        >
-                            {data.website}
-                        </a>
-                    ) : (
-                        <span className="text-gray-600 truncate">暂无</span>
-                    )}
+                    <ExhibitionWebsite website={data.website} variant="card" />
                 </div>
             </div>
 

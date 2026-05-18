@@ -5,7 +5,7 @@ import { ExhibitionData } from '../../types';
 import { getExhibitionDetail } from '../../services/exhibitionService';
 import TabButton from '../../components/client/TabButton';
 import Container from '../../components/client/Container';
-import { useAuth } from '../../contexts/AuthContext';
+import ExhibitionWebsite from '../../components/client/ExhibitionWebsite';
 
 
 const formatDate = (dateString?: string | null): string => {
@@ -62,7 +62,6 @@ const triggerNavbarSearchFocus = (keyword: string) => {
 
 const ExhibitionDetailPage: React.FC = () => {
     const { slug } = useParams<{ slug: string }>(); 
-    const { user } = useAuth();
     const [exhibition, setExhibition] = useState<ExhibitionData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -139,8 +138,6 @@ const ExhibitionDetailPage: React.FC = () => {
             : undefined,
     };
 
-    const isValidMember = user?.is_valid_member;
-
     return (
         <Container>
             <Helmet>
@@ -197,27 +194,7 @@ const ExhibitionDetailPage: React.FC = () => {
                         <div className="flex items-center">
                             <span className="text-sm text-gray-400 shrink-0">官方网站：</span>
                             <span className="text-sm">
-                                {isValidMember ? (
-                                    exhibition.website ? (
-                                        <a 
-                                            href={exhibition.website.startsWith('http') ? exhibition.website : `https://${exhibition.website}`} 
-                                            target="_blank" 
-                                            rel="noreferrer" 
-                                            className="text-blue-600 hover:text-blue-800 hover:underline break-all font-medium"
-                                        >
-                                            {exhibition.website}
-                                        </a>
-                                    ) : '—'
-                                ) : (
-                                    <div className="relative inline-block cursor-pointer group">
-                                        <span className="text-blue-200 blur-[3px] select-none tracking-wider">
-                                            {exhibition.website || "www.exhibition-site.com"}
-                                        </span>
-                                        <span className="absolute left-0 -top-9 hidden group-hover:block bg-gray-800 text-white text-[11px] px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-10 font-medium">
-                                            🔒 仅限会员查看
-                                        </span>
-                                    </div>
-                                )}
+                                <ExhibitionWebsite website={exhibition.website} variant="detail" />
                             </span>
                         </div>
                     </div>

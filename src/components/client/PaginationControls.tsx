@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface PaginationControlsProps {
   totalCount: number; // 总条数
@@ -25,11 +25,39 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
   defaultPageSize = defaultPageSizeOptions[0],
   pageSizeOptions = defaultPageSizeOptions,
 }) => {
+  const [isPageSizeMenuOpen, setIsPageSizeMenuOpen] = useState(false);
+  const pageSizeMenuRef = useRef<HTMLDivElement | null>(null);
   const isFirstPage = currentPage === 1;
   const isLastPage = currentPage === totalPages;
   // 当总页数小于等于 1 时，不显示分页控件
   const showPagination = totalPages > 1;
   const normalizedSearchQuery = searchQuery.trim();
+
+  useEffect(() => {
+    if (!isPageSizeMenuOpen) {
+      return undefined;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!pageSizeMenuRef.current?.contains(event.target as Node)) {
+        setIsPageSizeMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsPageSizeMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isPageSizeMenuOpen]);
 
   const buildHref = (nextPage: number, nextPageSize: number = pageSize) => {
     const params = new URLSearchParams();
@@ -89,13 +117,30 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
       
         {/* 仅在需要分页时显示每页条数选择 */}
         {showPagination && (
-          <div className="relative text-sm text-gray-700">
-            <details className="group">
-              <summary className="list-none cursor-pointer rounded border border-gray-300 bg-white px-3 py-1 text-sm transition-colors hover:border-blue-400 hover:text-blue-600">
-                {`${pageSize} 条 / 每页`}
-              </summary>
+          <div ref={pageSizeMenuRef} className="relative text-sm text-gray-700">
+            <button
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={isPageSizeMenuOpen}
+              onClick={() => setIsPageSizeMenuOpen((open) => !open)}
+              className={`flex items-center gap-2 rounded border border-gray-300 bg-white px-3 py-1 text-sm transition-colors hover:border-blue-400 hover:text-blue-600 
+                relative pr-8 
+                ${isPageSizeMenuOpen ? 'is-open' : ''}`}
+            >
+              <span>{`${pageSize} 条 / 每页`}</span>
+              <span className={`
+                absolute right-3 top-1/2 -translate-y-1/2 
+                border-x-4 border-t-4 border-x-transparent border-t-gray-400 
+                transition-transform duration-200 ease-in-out
+                ${isPageSizeMenuOpen ? 'rotate-180 border-t-blue-600' : ''}`}
+              />
+            </button>
 
-              <div className="absolute left-0 top-full z-10 mt-2 min-w-full overflow-hidden rounded border border-gray-200 bg-white shadow-lg">
+            {isPageSizeMenuOpen && (
+              <div
+                role="menu"
+                className="absolute bottom-full left-0 z-10 mb-2 min-w-full overflow-hidden rounded border border-gray-200 bg-white shadow-lg"
+              >
                 {pageSizeOptions.map((size) => {
                   const isActive = size === pageSize;
 
@@ -104,6 +149,8 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
                       key={`option-${size}`}
                       href={buildHref(1, size)}
                       aria-current={isActive ? 'page' : undefined}
+                      role="menuitem"
+                      onClick={() => setIsPageSizeMenuOpen(false)}
                       className={`block whitespace-nowrap px-3 py-2 transition-colors ${
                         isActive
                           ? 'bg-blue-50 text-blue-600'
@@ -115,7 +162,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
                   );
                 })}
               </div>
-            </details>
+            )}
           </div>
         )}
 
