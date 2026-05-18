@@ -21,6 +21,8 @@ const ExhibitionFeaturedCard: React.FC<ExhibitionFeaturedCardProps> = ({ data })
     // 将整个卡片包装在 Link 中，实现点击整个卡片跳转
     <Link 
         to={`/exhibitions/${data.slug}`} 
+        target="_blank"
+        rel="noopener noreferrer"
         className="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 flex flex-col justify-between transform hover:-translate-y-0.5"
     >
       <div className="flex flex-col">
@@ -41,11 +43,11 @@ const ExhibitionFeaturedCard: React.FC<ExhibitionFeaturedCardProps> = ({ data })
 
           <div className="flex-grow min-w-0 pt-1">
  
-            <h3 className="text-xl font-semibold text-gray-800 leading-snug truncate" title={data.fair_name}>
-              {data.fair_name}
-            </h3>
-            <p className="text-sm text-gray-500 mt-1 leading-snug whitespace-normal break-words" title={data.fair_name_trans}>
+            <h3 className="text-lg font-medium text-gray-800 leading-snug truncate" title={data.fair_name_trans}>
               {data.fair_name_trans}
+            </h3>
+            <p className="text-sm text-gray-500 mt-1 leading-snug whitespace-normal break-words" title={data.fair_name}>
+              {data.fair_name}
             </p>
           </div>
         </div>

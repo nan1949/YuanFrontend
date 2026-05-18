@@ -70,6 +70,8 @@ const ExhibitionCard: React.FC<{ data: ExhibitionData }> = ({ data }) => {
             
             <Link 
                 to={`/exhibitions/${data.slug}`} 
+                target="_blank"
+                rel="noopener noreferrer"
                 className={cardTitleClasses}
                 title={data.fair_name_trans}
             >

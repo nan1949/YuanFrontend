@@ -20,6 +20,7 @@ const NavSection: React.FC = () => {
   const [history, setHistory] = useState<string[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [isSearchHighlighted, setIsSearchHighlighted] = useState(false);
 
   useEffect(() => {
     if (location.pathname === '/search') {
@@ -52,6 +53,38 @@ const NavSection: React.FC = () => {
     document.addEventListener('mousedown', handlePointerDown);
     return () => document.removeEventListener('mousedown', handlePointerDown);
   }, []);
+
+  useEffect(() => {
+    const handleNavbarSearchFocus = (event: Event) => {
+      const detail = (event as CustomEvent<{ keyword?: string; type?: SearchType }>).detail;
+      const nextKeyword = detail?.keyword?.trim() || '';
+      const nextType = detail?.type || 'company';
+      const params = new URLSearchParams();
+
+      params.set('type', nextType);
+
+      if (nextKeyword) {
+        params.set('q', nextKeyword);
+      }
+
+      setKeyword(nextKeyword);
+      setIsHistoryOpen(false);
+      setIsSearchHighlighted(true);
+      navigate(`/search?${params.toString()}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      window.setTimeout(() => {
+        inputRef.current?.focus();
+      }, 120);
+
+      window.setTimeout(() => {
+        setIsSearchHighlighted(false);
+      }, 1400);
+    };
+
+    window.addEventListener('client:navbar-search-focus', handleNavbarSearchFocus);
+    return () => window.removeEventListener('client:navbar-search-focus', handleNavbarSearchFocus);
+  }, [navigate]);
 
   const activeSearchType: SearchType =
     location.pathname === '/search' && new URLSearchParams(location.search).get('type') === 'company'
@@ -142,7 +175,11 @@ const NavSection: React.FC = () => {
         </Link>
 
         <div ref={searchBoxRef} className="relative order-3 w-full md:order-none md:flex-1 md:max-w-3xl">
-          <div className="flex h-11 w-full overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm">
+          <div className={`flex h-11 w-full overflow-hidden rounded-xl border bg-white shadow-sm transition-all ${
+            isSearchHighlighted
+              ? 'border-blue-400 ring-4 ring-blue-100'
+              : 'border-gray-300'
+          }`}>
             <input
               ref={inputRef}
               type="text"

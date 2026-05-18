@@ -39,6 +39,8 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ data }) => {
           {/* 企业名称 */}
           <Link 
             to={detailPath} 
+            target="_blank"
+            rel="noopener noreferrer"
             className={`${cardTitleClasses} block truncate hover:text-blue-600`}
             title={data.company_name}
           >

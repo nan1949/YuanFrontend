@@ -51,6 +51,15 @@ const DetailItem: React.FC<{
     </div>
 );
 
+const triggerNavbarSearchFocus = (keyword: string) => {
+    window.dispatchEvent(new CustomEvent('client:navbar-search-focus', {
+        detail: {
+            keyword,
+            type: 'company',
+        },
+    }));
+};
+
 const ExhibitionDetailPage: React.FC = () => {
     const { slug } = useParams<{ slug: string }>(); 
     const { user } = useAuth();
@@ -113,7 +122,9 @@ const ExhibitionDetailPage: React.FC = () => {
                 )}
                 <div className="pt-1">
                     <h1 className="text-3xl font-bold text-gray-900 mb-1">{exhibition.fair_name_trans}</h1>
-                    <p className="text-lg text-gray-400 italic font-light">{exhibition.fair_name}</p>
+                    <h2 className="text-lg text-gray-400 italic font-light m-0 p-0 font-normal">
+                        {exhibition.fair_name}
+                    </h2>
                 </div>
             </div>
             
@@ -184,6 +195,25 @@ const ExhibitionDetailPage: React.FC = () => {
                     </div>
                 </div>
            
+            </div>
+
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between border border-dashed border-gray-200 rounded-2xl p-6 bg-gray-50/30 my-6">
+                <div>
+                    <h2 className="text-xl font-semibold text-gray-800">
+                        {exhibition.fair_name_trans} 参展商名录数据中心
+                    </h2>
+                    <p className="text-sm text-gray-400 font-light mt-1">
+                        当前展会的历史参展企业足迹已录入系统数据库，开放公开检索。
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={() => triggerNavbarSearchFocus(exhibition.fair_name_trans)}
+                    className="mt-4 md:mt-0 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-all shadow-sm"
+                >
+                    去检索参展商
+                </button>
             </div>
         
             <div className="mt-4 px-1">
