@@ -1,36 +1,27 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import logo2 from '../../assets/logo2.svg';
 import UserNav from '../../components/client/UserNav';
-import {
-  clearSearchHistory,
-  getSearchHistory,
-  saveSearchHistory,
-} from '../../services/searchHistoryService';
-import { getSearchPath, getSearchTypeFromPath, isSearchResultsPath, SearchType } from '../../utils/searchRouting';
+import { useNavbarSearch } from '../../hooks/useNavbarSearch';
 
 const NavSection: React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
   const navRef = useRef<HTMLElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const searchBoxRef = useRef<HTMLDivElement | null>(null);
-  const [keyword, setKeyword] = useState('');
-  const [history, setHistory] = useState<string[]>([]);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
-  const [isSearchHighlighted, setIsSearchHighlighted] = useState(false);
-  const activeSearchType = getSearchTypeFromPath(location.pathname, location.search);
-
-  useEffect(() => {
-    if (isSearchResultsPath(location.pathname)) {
-      const params = new URLSearchParams(location.search);
-      setKeyword(params.get('q') || '');
-      return;
-    }
-
-    setKeyword('');
-  }, [location.pathname, location.search]);
+  const {
+    handleClear,
+    handleClearHistory,
+    handleHistorySelect,
+    handleKeyDown,
+    handleKeywordChange,
+    handleSearch,
+    history,
+    inputRef,
+    isHistoryOpen,
+    isSearchHighlighted,
+    keyword,
+    openHistory,
+    placeholder,
+    searchBoxRef,
+  } = useNavbarSearch();
 
   useEffect(() => {
     const updateNavHeight = () => {
@@ -45,118 +36,6 @@ const NavSection: React.FC = () => {
       window.removeEventListener('resize', updateNavHeight);
     };
   }, []);
-
-  useEffect(() => {
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!searchBoxRef.current?.contains(event.target as Node)) {
-        setIsHistoryOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
-  }, []);
-
-  useEffect(() => {
-    const handleNavbarSearchFocus = (event: Event) => {
-      const detail = (event as CustomEvent<{ keyword?: string; type?: SearchType }>).detail;
-      const nextKeyword = detail?.keyword?.trim() || '';
-      const nextType = detail?.type || 'company';
-      const params = new URLSearchParams();
-
-      if (nextKeyword) {
-        params.set('q', nextKeyword);
-      }
-
-      setKeyword(nextKeyword);
-      setIsHistoryOpen(false);
-      setIsSearchHighlighted(true);
-      navigate(`${getSearchPath(nextType)}${params.toString() ? `?${params.toString()}` : ''}`);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      window.setTimeout(() => {
-        inputRef.current?.focus();
-      }, 120);
-
-      window.setTimeout(() => {
-        setIsSearchHighlighted(false);
-      }, 1400);
-    };
-
-    window.addEventListener('client:navbar-search-focus', handleNavbarSearchFocus);
-    return () => window.removeEventListener('client:navbar-search-focus', handleNavbarSearchFocus);
-  }, [navigate]);
-
-  const loadHistory = async () => {
-    setIsHistoryLoading(true);
-    try {
-      const data = await getSearchHistory();
-      setHistory(data);
-    } catch (error) {
-      console.error('加载搜索历史失败', error);
-    } finally {
-      setIsHistoryLoading(false);
-    }
-  };
-
-  const openHistory = () => {
-    setIsHistoryOpen(true);
-    loadHistory();
-  };
-
-  const handleSearch = async (nextKeyword: string = keyword) => {
-    const trimmedKeyword = nextKeyword.trim();
-    setKeyword(nextKeyword);
-    setIsHistoryOpen(false);
-
-    if (trimmedKeyword) {
-      try {
-        await saveSearchHistory(trimmedKeyword);
-        setHistory(prev => {
-          const filtered = prev.filter(item => item !== trimmedKeyword);
-          return [trimmedKeyword, ...filtered].slice(0, 10);
-        });
-      } catch (error) {
-        console.error('保存搜索历史失败', error);
-      }
-    }
-
-    const params = new URLSearchParams();
-
-    if (trimmedKeyword) {
-      params.set('q', trimmedKeyword);
-    }
-
-    navigate(`${getSearchPath(activeSearchType)}${params.toString() ? `?${params.toString()}` : ''}`);
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      handleSearch();
-    }
-  };
-
-  const handleClear = () => {
-    setKeyword('');
-    inputRef.current?.focus();
-  };
-
-  const handleClearHistory = async () => {
-    try {
-      await clearSearchHistory();
-      setHistory([]);
-      setIsHistoryOpen(false);
-    } catch (error) {
-      console.error('清空搜索历史失败', error);
-    }
-  };
-
-  const handleHistorySelect = (historyKeyword: string) => {
-    handleSearch(historyKeyword);
-  };
-
-  const placeholder =
-    activeSearchType === 'company' ? '搜索参展企业名称、曾用名、简介...' : '搜索国际展会名称、主办方、地点...';
 
   return (
     <nav ref={navRef} className="bg-white border-b border-gray-200 p-2 sticky top-0 z-50 shadow-sm">
@@ -179,7 +58,7 @@ const NavSection: React.FC = () => {
               ref={inputRef}
               type="text"
               value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
+              onChange={handleKeywordChange}
               onClick={openHistory}
               onFocus={openHistory}
               onKeyDown={handleKeyDown}
@@ -220,7 +99,7 @@ const NavSection: React.FC = () => {
             </button>
           </div>
 
-          {isHistoryOpen && (
+          {isHistoryOpen && history.length > 0 && (
             <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
                 <span className="text-xs font-medium text-gray-500">历史搜索</span>
@@ -235,24 +114,18 @@ const NavSection: React.FC = () => {
                 )}
               </div>
 
-              {isHistoryLoading ? (
-                <div className="px-4 py-3 text-sm text-gray-400">加载中...</div>
-              ) : history.length > 0 ? (
-                <div className="max-h-64 overflow-y-auto py-1">
-                  {history.map(item => (
-                    <button
-                      type="button"
-                      key={item}
-                      onClick={() => handleHistorySelect(item)}
-                      className="block w-full truncate px-4 py-2 text-left text-sm text-gray-700 transition hover:bg-blue-50 hover:text-blue-700"
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="px-4 py-3 text-sm text-gray-400">暂无搜索历史</div>
-              )}
+              <div className="max-h-64 overflow-y-auto py-1">
+                {history.map(item => (
+                  <button
+                    type="button"
+                    key={item}
+                    onClick={() => handleHistorySelect(item)}
+                    className="block w-full truncate px-4 py-2 text-left text-sm text-gray-700 transition hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>

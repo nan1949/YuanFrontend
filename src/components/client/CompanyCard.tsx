@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import { Link } from 'react-router-dom';
 import {  cardClasses, cardTitleClasses } from '../../styles/tailwindStyles';
-import TagGroup from './TagGroup';
+import CompanyTrackTags from './CompanyTrackTags';
 import { InfoCircleOutlined } from '@ant-design/icons'; 
 import { Tooltip } from 'antd'; 
 
@@ -55,20 +55,9 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ data }) => {
           )}
         </div>
 
-        <div className="flex items-center gap-3 mt-1 sm:mt-0">
-            {/* 足迹标签：紧跟在次数前面，节省纵向空间 */}
-            {data.exhibitor_countries && data.exhibitor_countries.length > 0 && (
-                <div className="flex items-center">
-                <span className="text-[11px] text-gray-400 mr-2 shrink-0">足迹:</span>
-                <TagGroup
-                    tags={data.exhibitor_countries}
-                    limit={3} // 列表页仅展示核心的前3个，避免撑开高度
-                />
-                </div>
-            )}
-            
-            {/* 累计参展次数 */}
-            <div className="flex items-center px-2 py-1 bg-blue-50 rounded border border-blue-100 shrink-0">
+        <div className="mt-1 flex items-center gap-3 sm:mt-0">
+
+            <div className="flex h-8 shrink-0 items-center rounded-md border border-blue-100 bg-blue-50 px-2.5 shadow-sm">
                 <span className="text-blue-400 text-[11px] mr-1.5 font-medium">累计参展</span>
                 <span className="text-blue-600 font-bold text-base leading-none mr-1">
                     {data.exhibitor_count || 0}
@@ -81,6 +70,18 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ data }) => {
                     <InfoCircleOutlined className="text-gray-400 text-sm hover:text-gray-600 transition-colors ml-1" />
                 </Tooltip>
             </div>
+
+            {data.exhibitor_countries && data.exhibitor_countries.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-400 shrink-0">足迹:</span>
+                <CompanyTrackTags
+                    countries={data.exhibitor_countries}
+                    limit={4} // 列表页仅展示核心的前4个，避免撑开高度
+                />
+                </div>
+            )}
+            
+            
            
         </div>
       </div>
